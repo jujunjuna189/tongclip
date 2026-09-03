@@ -1,0 +1,182 @@
+<script setup>
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import AppShell from '../components/AppShell.vue'
+import { useClipperStore } from '../stores/clipper'
+
+const router = useRouter()
+const store = useClipperStore()
+const saving = ref(false)
+const currentStep = ref(0)
+const steps = [
+  { title: 'Profil', description: 'Nama dan handle' },
+  { title: 'Akses', description: 'Login dan status' },
+  { title: 'Bank', description: 'Data payout' },
+]
+const form = ref({
+  name: '',
+  email: '',
+  handle: '',
+  password: 'password',
+  status: 'active',
+  role: 'clipper',
+  bank_name: '',
+  bank_account_number: '',
+  bank_account_name: '',
+})
+
+const inputClass = 'form-control'
+const selectClass = 'form-control form-select'
+const labelClass = 'text-xs font-medium text-white/44'
+const isFirstStep = computed(() => currentStep.value === 0)
+const isLastStep = computed(() => currentStep.value === steps.length - 1)
+const canContinue = computed(() => {
+  if (currentStep.value === 0) {
+    return Boolean(form.value.name.trim() && form.value.handle.trim())
+  }
+
+  if (currentStep.value === 1) {
+    return Boolean(form.value.email.trim() && form.value.password.length >= 8 && form.value.status && form.value.role)
+  }
+
+  return true
+})
+
+const nextStep = () => {
+  if (!canContinue.value || isLastStep.value) return
+  currentStep.value += 1
+}
+
+const previousStep = () => {
+  if (isFirstStep.value) return
+  currentStep.value -= 1
+}
+
+const createCreator = async () => {
+  saving.value = true
+
+  try {
+    await store.createAdminCreator({
+      ...form.value,
+      bank_name: form.value.bank_name || undefined,
+      bank_account_number: form.value.bank_account_number || undefined,
+      bank_account_name: form.value.bank_account_name || undefined,
+    })
+    router.push('/admin/creators')
+  } finally {
+    saving.value = false
+  }
+}
+</script>
+
+<template>
+  <AppShell>
+    <form class="mx-auto max-w-[960px] pb-24" @submit.prevent="createCreator">
+      <div class="flex items-center gap-4">
+        <RouterLink to="/admin/creators" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/[.045] text-white/62 transition hover:bg-white/[.075] hover:text-white">
+          <ArrowLeftIcon class="h-4 w-4" />
+        </RouterLink>
+        <div>
+          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Tambah Creator</h1>
+          <p class="mt-1 text-sm text-white/42">Buat akun creator manual dan simpan ke database.</p>
+        </div>
+      </div>
+
+      <div class="mt-7 grid gap-3 md:grid-cols-3">
+        <button
+          v-for="(step, index) in steps"
+          :key="step.title"
+          class="flex h-16 items-center gap-3 rounded-lg border px-4 text-left transition"
+          :class="index === currentStep ? 'border-blue-400/45 bg-blue-500/10' : index < currentStep ? 'border-emerald-300/18 bg-emerald-400/8' : 'border-white/[.07] bg-white/[.025]'"
+          type="button"
+          @click="currentStep = index"
+        >
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-semibold" :class="index === currentStep ? 'bg-bluebrand text-white' : index < currentStep ? 'bg-emerald-400/14 text-emerald-100' : 'bg-white/[.055] text-white/44'">
+            {{ index + 1 }}
+          </span>
+          <span>
+            <span class="block text-sm font-semibold text-white/82">{{ step.title }}</span>
+            <span class="mt-0.5 block text-xs text-white/36">{{ step.description }}</span>
+          </span>
+        </button>
+      </div>
+
+      <section v-if="currentStep === 0" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
+        <h2 class="text-base font-semibold text-white/86">Profil Creator</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+          <label class="block">
+            <span :class="labelClass">Nama</span>
+            <input v-model="form.name" required :class="inputClass" placeholder="Contoh: Dinda Putri" />
+          </label>
+          <label class="block">
+            <span :class="labelClass">Handle</span>
+            <input v-model="form.handle" required :class="inputClass" placeholder="@dindaputri" />
+          </label>
+        </div>
+      </section>
+
+      <section v-if="currentStep === 1" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
+        <h2 class="text-base font-semibold text-white/86">Akses Login</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+          <label class="block">
+            <span :class="labelClass">Email</span>
+            <input v-model="form.email" required type="email" :class="inputClass" placeholder="creator@example.com" />
+          </label>
+          <label class="block">
+            <span :class="labelClass">Password Awal</span>
+            <input v-model="form.password" required minlength="8" type="password" :class="inputClass" />
+          </label>
+          <label class="block">
+            <span :class="labelClass">Role</span>
+            <select v-model="form.role" :class="selectClass">
+              <option class="bg-black" value="clipper">Clipper</option>
+              <option class="bg-black" value="admin">Admin</option>
+            </select>
+          </label>
+          <label class="block">
+            <span :class="labelClass">Status</span>
+            <select v-model="form.status" :class="selectClass">
+              <option class="bg-black" value="active">Active</option>
+              <option class="bg-black" value="review">Review</option>
+              <option class="bg-black" value="blocked">Blocked</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section v-if="currentStep === 2" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
+        <h2 class="text-base font-semibold text-white/86">Data Bank</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+          <label class="block">
+            <span :class="labelClass">Bank</span>
+            <input v-model="form.bank_name" :class="inputClass" placeholder="BCA" />
+          </label>
+          <label class="block">
+            <span :class="labelClass">Nomor Rekening</span>
+            <input v-model="form.bank_account_number" :class="inputClass" placeholder="1234567890" />
+          </label>
+          <label class="block md:col-span-2">
+            <span :class="labelClass">Nama Rekening</span>
+            <input v-model="form.bank_account_name" :class="inputClass" placeholder="Sesuai buku tabungan" />
+          </label>
+        </div>
+      </section>
+
+      <div class="fixed bottom-0 left-0 right-0 z-20 border-t border-white/10 bg-[#0B0B0D]/92 px-5 py-4 backdrop-blur lg:left-[252px]">
+        <div class="mx-auto flex max-w-[960px] items-center justify-between gap-3">
+          <RouterLink to="/admin/creators" class="inline-flex h-11 items-center rounded-lg bg-white/[.055] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]">Batal</RouterLink>
+          <div class="flex items-center gap-3">
+            <button v-if="!isFirstStep" class="h-11 rounded-lg bg-white/[.055] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]" type="button" @click="previousStep">Kembali</button>
+            <button v-if="!isLastStep" class="h-11 rounded-lg bg-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#2D78FF] disabled:opacity-45" type="button" :disabled="!canContinue" @click="nextStep">
+              Lanjut
+            </button>
+            <button v-else class="h-11 rounded-lg bg-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#2D78FF] disabled:opacity-60" type="submit" :disabled="saving">
+              {{ saving ? 'Menyimpan...' : 'Simpan Creator' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </AppShell>
+</template>
