@@ -38,7 +38,7 @@ onMounted(async () => {
           <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${course.image_url})` }">
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
             <div class="absolute bottom-7 left-7 right-7">
-              <div class="flex items-center gap-2 text-xs font-semibold text-blue-200">
+              <div class="flex items-center gap-2 text-xs font-semibold text-gradient-primary">
                 <span>{{ course.level }}</span>
                 <span>•</span>
                 <span>{{ course.duration }}</span>
@@ -55,16 +55,16 @@ onMounted(async () => {
                 v-for="(lesson, index) in course.lessons || []"
                 :key="lesson.title"
                 :to="`/course-gratis/${course.id}/watch?lesson=${index}`"
-                class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left transition hover:border-blue-400/35"
+                class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left transition hover:border-purple-400/35"
               >
                 <div class="flex items-center gap-3">
-                  <span class="grid h-8 w-8 place-items-center rounded-full bg-blue-500/15 text-xs font-semibold text-blue-200">{{ index + 1 }}</span>
+                  <span class="grid h-8 w-8 place-items-center rounded-full bg-purple-500/15 text-xs font-semibold text-gradient-primary">{{ index + 1 }}</span>
                   <div>
                     <div class="font-semibold">{{ lesson.title }}</div>
                     <div class="mt-1 text-xs text-white/42">{{ lesson.duration }}</div>
                   </div>
                 </div>
-                <PlayCircleIcon class="h-6 w-6 text-blue-300" />
+                <PlayCircleIcon class="h-6 w-6 text-purple-300" />
               </RouterLink>
             </div>
           </div>
@@ -85,7 +85,7 @@ onMounted(async () => {
             <div class="mt-4 space-y-3">
               <button v-for="item in course.resources || []" :key="item" class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left text-sm font-medium text-white/70">
                 {{ item }}
-                <DocumentArrowDownIcon class="h-5 w-5 text-blue-300" />
+                <DocumentArrowDownIcon class="h-5 w-5 text-purple-300" />
               </button>
             </div>
           </section>
@@ -94,7 +94,7 @@ onMounted(async () => {
             <h2 class="text-lg font-semibold">Checklist</h2>
             <div class="mt-4 space-y-3 text-sm text-white/58">
               <div v-for="item in ['Tonton materi utama', 'Download resource', 'Praktik di 1 campaign']" :key="item" class="flex items-center gap-3">
-                <CheckCircleIcon class="h-5 w-5 text-blue-300" />
+                <CheckCircleIcon class="h-5 w-5 text-purple-300" />
                 {{ item }}
               </div>
             </div>

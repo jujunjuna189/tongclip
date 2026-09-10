@@ -18,7 +18,7 @@ const icons = {
 const styles = {
   'Total Pendapatan': {
     value: 'text-white',
-    glow: 'shadow-[inset_0_-70px_90px_rgba(31,107,255,.10)] border-blue-500/15',
+    glow: 'shadow-[inset_0_-70px_90px_rgba(136,107,255,.10)] border-purple-500/15',
   },
   'Bisa Dicairkan': {
     value: 'text-[#9DFFA5]',
@@ -26,11 +26,11 @@ const styles = {
   },
   'Total Views': {
     value: 'text-blueglow',
-    glow: 'shadow-[inset_0_-70px_90px_rgba(31,107,255,.18)] border-blue-500/15',
+    glow: 'shadow-[inset_0_-70px_90px_rgba(136,107,255,.18)] border-purple-500/15',
   },
   'Total Video': {
     value: 'text-blueglow',
-    glow: 'shadow-[inset_0_-70px_90px_rgba(14,165,233,.15)] border-blue-500/15',
+    glow: 'shadow-[inset_0_-70px_90px_rgba(14,165,233,.15)] border-purple-500/15',
   },
 }
 </script>

@@ -24,14 +24,14 @@ const deadlineProgress = computed(() => {
   <RouterLink
     :to="`/campaigns/${campaign.slug}`"
     class="dark-card block overflow-hidden rounded-lg transition hover:-translate-y-0.5"
-    :class="accent === 'orange' ? 'hover:border-orange-500/40' : 'hover:border-blue-500/40'"
+    :class="accent === 'orange' ? 'hover:border-orange-500/40' : 'hover:border-purple-500/40'"
   >
     <div class="relative h-60 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }">
       <div class="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent"></div>
       <span
         v-if="campaign.exclusive"
         class="absolute right-0 top-0 rounded-bl-2xl border bg-black/60 px-4 py-2.5 text-xs font-medium"
-        :class="accent === 'orange' ? 'border-orange-300/60 text-orange-100' : 'border-blue-300/60 text-blue-100'"
+        :class="accent === 'orange' ? 'border-orange-300/60 text-orange-100' : 'border-purple-300/60 text-purple-100'"
       >
         Exclusive Campaign
       </span>

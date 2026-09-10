@@ -56,7 +56,7 @@ onMounted(() => store.loadAdminCampaigns())
               <Bars3Icon class="h-4 w-4" />
             </button>
           </div>
-          <RouterLink to="/admin/campaigns/create" class="inline-flex h-10 items-center gap-2 rounded-lg bg-bluebrand px-4 text-sm font-semibold text-white shadow-blue">
+          <RouterLink to="/admin/campaigns/create" class="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 text-sm font-semibold text-white shadow-blue">
             <PlusIcon class="h-4 w-4 stroke-[2]" />
             Campaign
           </RouterLink>
@@ -80,7 +80,7 @@ onMounted(() => store.loadAdminCampaigns())
           <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
             <div class="rounded-lg bg-white/[.035] p-3">
               <div class="text-xs text-white/34">Rate</div>
-              <div class="mt-1 font-semibold text-blue-200/90">{{ campaign.rate }}</div>
+              <div class="mt-1 font-semibold text-gradient-primary">{{ campaign.rate }}</div>
             </div>
             <div class="rounded-lg bg-white/[.035] p-3">
               <div class="text-xs text-white/34">Budget</div>
@@ -122,7 +122,7 @@ onMounted(() => store.loadAdminCampaigns())
                 </td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ campaign.category }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ campaign.type }}</td>
-                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 font-semibold text-blue-200/90 transition group-hover:bg-white/[.045]">{{ campaign.rate }}</td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 font-semibold text-gradient-primary transition group-hover:bg-white/[.045]">{{ campaign.rate }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ campaign.budget }}%</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ campaign.deadline || '-' }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">

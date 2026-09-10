@@ -69,7 +69,7 @@ onMounted(() => store.loadIncomeSummary())
               v-for="mode in ['Total', 'Kenaikan']"
               :key="mode"
               class="h-10 rounded-md px-5 text-sm font-medium transition"
-              :class="activeMode === mode ? 'bg-bluebrand text-white' : 'text-white/45 hover:text-white'"
+              :class="activeMode === mode ? 'bg-gradient-to-b from-[#a088ff] to-bluebrand text-white' : 'text-white/45 hover:text-white'"
               @click="activeMode = mode"
             >
               {{ mode }}
@@ -91,15 +91,15 @@ onMounted(() => store.loadIncomeSummary())
               <div
                 v-for="item in chart"
                 :key="item.label"
-                class="min-w-0 flex-1 rounded-t bg-bluebrand/80 shadow-blue transition"
+                class="min-w-0 flex-1 rounded-t bg-gradient-to-b from-[#a088ff] to-bluebrand/80 shadow-blue transition"
                 :style="{ height: `${Math.max(4, (item.amount / maxAmount) * 100)}%` }"
                 :title="`${item.label}: ${item.amount_label}`"
               ></div>
             </div>
-            <div class="absolute bottom-0 left-0 right-0 h-px bg-bluebrand"></div>
+            <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-b from-[#a088ff] to-bluebrand"></div>
             <div class="absolute -right-16 -top-2 text-sm text-white/52">{{ totalIncome }}</div>
             <div class="absolute -right-4 bottom-[-8px] text-sm text-white/52">0</div>
-            <div class="absolute bottom-2 right-3 rounded-lg bg-bluebrand px-4 py-2 text-lg font-semibold text-white">{{ totalIncome }}</div>
+            <div class="absolute bottom-2 right-3 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 py-2 text-lg font-semibold text-white">{{ totalIncome }}</div>
           </div>
 
           <div class="absolute bottom-3 left-6 right-14 grid grid-cols-[repeat(30,minmax(42px,1fr))] gap-0 overflow-hidden text-xs text-white/56">

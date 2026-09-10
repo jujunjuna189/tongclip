@@ -38,7 +38,7 @@ onMounted(() => store.loadDashboard())
       <section class="dark-card relative mt-7 overflow-hidden rounded-lg p-5 md:p-6">
         <div class="flex flex-wrap items-center justify-between gap-5">
           <div class="flex items-center gap-5">
-            <div class="grid h-14 w-14 place-items-center rounded-full bg-blue-500/15 text-blue-200 shadow-blue">
+            <div class="grid h-14 w-14 place-items-center rounded-full bg-purple-500/15 text-purple-200 shadow-blue">
               <GiftIcon class="h-7 w-7 stroke-[1.6]" />
             </div>
             <div>
@@ -46,7 +46,7 @@ onMounted(() => store.loadDashboard())
               <p class="mt-3 text-sm font-normal text-white/50">Submit 1/hari sampai 7 kali</p>
             </div>
           </div>
-          <div class="inline-flex items-center gap-2 rounded-full border border-blue-400/50 bg-blue-500/15 px-6 py-2.5 text-sm font-semibold text-blue-100 shadow-blue">
+          <div class="inline-flex items-center gap-2 rounded-full border border-purple-400/50 bg-purple-500/15 px-6 py-2.5 text-sm font-semibold text-purple-100 shadow-blue">
             <GiftIcon class="h-[18px] w-[18px] stroke-[1.8]" />
             Rp 15.000
           </div>
@@ -56,15 +56,15 @@ onMounted(() => store.loadDashboard())
           <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
             <div v-for="day in 7" :key="day" class="grid aspect-[1.75/1] place-items-center rounded-lg border border-white/8 bg-white/[.035] text-sm font-medium text-white/48">
               <span v-if="day < 7">H {{ day }}</span>
-              <GiftIcon v-else class="h-6 w-6 text-blue-400/45" />
+              <GiftIcon v-else class="h-6 w-6 text-purple-400/45" />
             </div>
           </div>
           <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center text-sm font-medium text-white/78">
-              <span class="grid h-7 w-7 place-items-center rounded-full bg-blue-500/30 text-[10px]">DA</span>
+              <span class="grid h-7 w-7 place-items-center rounded-full bg-purple-500/30 text-[10px]">DA</span>
               <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full bg-sky-500/30 text-[10px]">RE</span>
               <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full bg-cyan-500/30 text-[10px]">NC</span>
-              <span class="ml-3"><span class="text-blue-300">1.000+</span> Orang Telah Claim Hadiah</span>
+              <span class="ml-3"><span class="text-purple-300">1.000+</span> Orang Telah Claim Hadiah</span>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ onMounted(() => store.loadDashboard())
         <div class="flex flex-wrap items-center justify-between gap-4">
           <h2 class="text-lg font-semibold tracking-[-.01em]">Video Kamu</h2>
           <button class="inline-flex h-9 items-center gap-3 rounded-full border border-white/10 bg-white/[.025] px-4 text-xs font-medium text-white/56">
-              <ArrowPathIcon class="h-4 w-4 text-blue-300" />
+              <ArrowPathIcon class="h-4 w-4 text-purple-300" />
             Refresh Views dalam <span class="text-white/82">01:27:28</span>
             <ChevronDownIcon class="h-3.5 w-3.5" />
           </button>
@@ -98,7 +98,7 @@ onMounted(() => store.loadDashboard())
             @click="activeTab = tab"
           >
             {{ tab }}
-            <span v-if="activeTab === tab" class="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-bluebrand"></span>
+            <span v-if="activeTab === tab" class="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand"></span>
           </button>
         </div>
 
@@ -149,7 +149,7 @@ onMounted(() => store.loadDashboard())
                       :href="submission.link"
                       target="_blank"
                       rel="noreferrer"
-                      class="inline-flex h-8 items-center rounded-lg bg-bluebrand px-4 text-[11px] font-semibold text-white shadow-blue"
+                      class="inline-flex h-8 items-center rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 text-[11px] font-semibold text-white shadow-blue"
                     >
                       View
                     </a>
@@ -193,7 +193,7 @@ onMounted(() => store.loadDashboard())
       </section>
 
       <div class="fixed bottom-5 right-5 z-20 hidden rounded-full border border-white/10 bg-black/80 px-6 py-3 text-sm font-medium text-white/80 shadow-card backdrop-blur lg:block">
-        Onboarding Progress <span class="ml-3 text-blue-400">0/4 steps</span> <span class="font-normal text-white/35">completed</span>
+        Onboarding Progress <span class="ml-3 text-purple-400">0/4 steps</span> <span class="font-normal text-white/35">completed</span>
       </div>
     </div>
   </AppShell>

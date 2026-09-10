@@ -55,7 +55,7 @@ const sendInvite = async () => {
           </label>
           <label class="block">
             <span class="text-xs font-medium text-white/44">Pesan Undangan</span>
-            <textarea v-model="form.message" rows="6" class="mt-2 w-full resize-y rounded-lg border border-white/[.08] bg-black/20 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/24 focus:border-blue-400/55 focus:bg-black/30" placeholder="Tambahkan catatan singkat untuk creator."></textarea>
+            <textarea v-model="form.message" rows="6" class="mt-2 w-full resize-y rounded-lg border border-white/[.08] bg-black/20 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/24 focus:border-purple-400/55 focus:bg-black/30" placeholder="Tambahkan catatan singkat untuk creator."></textarea>
           </label>
         </div>
       </section>
@@ -63,7 +63,7 @@ const sendInvite = async () => {
       <div class="fixed bottom-0 left-0 right-0 z-20 border-t border-white/10 bg-[#0B0B0D]/92 px-5 py-4 backdrop-blur lg:left-[252px]">
         <div class="mx-auto flex max-w-[720px] items-center justify-end gap-3">
           <RouterLink to="/admin/creators" class="inline-flex h-11 items-center rounded-lg bg-white/[.055] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]">Batal</RouterLink>
-          <button class="h-11 rounded-lg bg-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#2D78FF] disabled:opacity-60" type="submit" :disabled="sending">
+          <button class="h-11 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#7551e9] disabled:opacity-60" type="submit" :disabled="sending">
             {{ sending ? 'Mengirim...' : 'Kirim Undangan' }}
           </button>
         </div>

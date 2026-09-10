@@ -20,7 +20,6 @@ const form = ref({
   handle: '',
   password: 'password',
   status: 'active',
-  role: 'clipper',
   bank_name: '',
   bank_account_number: '',
   bank_account_name: '',
@@ -37,7 +36,7 @@ const canContinue = computed(() => {
   }
 
   if (currentStep.value === 1) {
-    return Boolean(form.value.email.trim() && form.value.password.length >= 8 && form.value.status && form.value.role)
+    return Boolean(form.value.email.trim() && form.value.password.length >= 8 && form.value.status)
   }
 
   return true
@@ -88,11 +87,11 @@ const createCreator = async () => {
           v-for="(step, index) in steps"
           :key="step.title"
           class="flex h-16 items-center gap-3 rounded-lg border px-4 text-left transition"
-          :class="index === currentStep ? 'border-blue-400/45 bg-blue-500/10' : index < currentStep ? 'border-emerald-300/18 bg-emerald-400/8' : 'border-white/[.07] bg-white/[.025]'"
+          :class="index === currentStep ? 'border-purple-400/45 bg-purple-500/10' : index < currentStep ? 'border-emerald-300/18 bg-emerald-400/8' : 'border-white/[.07] bg-white/[.025]'"
           type="button"
           @click="currentStep = index"
         >
-          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-semibold" :class="index === currentStep ? 'bg-bluebrand text-white' : index < currentStep ? 'bg-emerald-400/14 text-emerald-100' : 'bg-white/[.055] text-white/44'">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-semibold" :class="index === currentStep ? 'bg-gradient-to-b from-[#a088ff] to-bluebrand text-white' : index < currentStep ? 'bg-emerald-400/14 text-emerald-100' : 'bg-white/[.055] text-white/44'">
             {{ index + 1 }}
           </span>
           <span>
@@ -128,13 +127,6 @@ const createCreator = async () => {
             <input v-model="form.password" required minlength="8" type="password" :class="inputClass" />
           </label>
           <label class="block">
-            <span :class="labelClass">Role</span>
-            <select v-model="form.role" :class="selectClass">
-              <option class="bg-black" value="clipper">Clipper</option>
-              <option class="bg-black" value="admin">Admin</option>
-            </select>
-          </label>
-          <label class="block">
             <span :class="labelClass">Status</span>
             <select v-model="form.status" :class="selectClass">
               <option class="bg-black" value="active">Active</option>
@@ -168,10 +160,10 @@ const createCreator = async () => {
           <RouterLink to="/admin/creators" class="inline-flex h-11 items-center rounded-lg bg-white/[.055] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]">Batal</RouterLink>
           <div class="flex items-center gap-3">
             <button v-if="!isFirstStep" class="h-11 rounded-lg bg-white/[.055] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]" type="button" @click="previousStep">Kembali</button>
-            <button v-if="!isLastStep" class="h-11 rounded-lg bg-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#2D78FF] disabled:opacity-45" type="button" :disabled="!canContinue" @click="nextStep">
+            <button v-if="!isLastStep" class="h-11 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#7551e9] disabled:opacity-45" type="button" :disabled="!canContinue" @click="nextStep">
               Lanjut
             </button>
-            <button v-else class="h-11 rounded-lg bg-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#2D78FF] disabled:opacity-60" type="submit" :disabled="saving">
+            <button v-else class="h-11 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-6 text-sm font-semibold text-white shadow-blue transition hover:bg-[#7551e9] disabled:opacity-60" type="submit" :disabled="saving">
               {{ saving ? 'Menyimpan...' : 'Simpan Creator' }}
             </button>
           </div>

@@ -16,7 +16,7 @@ const campaigns = computed(() => store.adminCampaigns.slice(0, 5))
 const submissions = computed(() => store.adminSubmissions.slice(0, 5))
 
 const adminStats = computed(() => [
-  { label: 'Total Creator', value: String(store.adminCreators.length || 0), icon: UserGroupIcon, tone: 'text-blue-200' },
+  { label: 'Total Creator', value: String(store.adminCreators.length || 0), icon: UserGroupIcon, tone: 'text-purple-200' },
   { label: 'Campaign Aktif', value: String(store.adminCampaigns.length || 0), icon: MegaphoneIcon, tone: 'text-sky-200' },
   { label: 'Submission Review', value: String(store.adminSubmissions.length || 0), icon: VideoCameraIcon, tone: 'text-amber-100' },
   { label: 'Payout Valid', value: store.adminPayouts?.total_income || 'Rp0', icon: BanknotesIcon, tone: 'text-emerald-200' },

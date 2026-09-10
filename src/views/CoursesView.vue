@@ -26,7 +26,7 @@ onMounted(() => store.loadCourses())
           <p class="mt-2 min-h-16 text-sm leading-6 text-white/52">{{ course.description }}</p>
           <RouterLink
             :to="`/course-gratis/${course.id}`"
-            class="mt-5 inline-flex rounded-lg bg-blue-500/20 px-4 py-2 text-sm font-black text-blue-200 transition hover:bg-blue-500/30 hover:text-white"
+            class="mt-5 inline-flex rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-black text-gradient-primary transition hover:bg-purple-500/30 hover:text-white"
           >
             Mulai Belajar
           </RouterLink>

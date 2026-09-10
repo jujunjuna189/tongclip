@@ -43,7 +43,7 @@ onMounted(async () => {
               <div class="font-black">{{ item.source }}</div>
               <div class="text-sm text-white/42">{{ item.date }} dari {{ item.account }}</div>
             </div>
-            <div class="font-black text-blue-300">{{ item.amount }}</div>
+            <div class="font-black text-gradient-primary">{{ item.amount }}</div>
           </div>
         </div>
       </section>

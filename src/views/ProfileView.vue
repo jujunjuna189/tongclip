@@ -6,10 +6,10 @@ import AppShell from '../components/AppShell.vue'
   <AppShell>
     <section class="grid gap-6 lg:grid-cols-[.75fr_1.25fr]">
       <div class="dark-card rounded-lg p-6">
-        <div class="grid h-20 w-20 place-items-center rounded-lg bg-bluebrand text-3xl font-black">A</div>
+        <div class="grid h-20 w-20 place-items-center rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand text-3xl font-black">A</div>
         <h1 class="mt-5 text-2xl font-black">Alya Pramesti</h1>
         <p class="mt-1 text-white/46">owner@clipper.id</p>
-        <p class="mt-5 rounded-lg bg-blue-500/15 px-3 py-2 text-sm font-bold text-blue-200">Base Account Owner</p>
+        <p class="mt-5 rounded-lg bg-purple-500/15 px-3 py-2 text-sm font-bold text-gradient-primary">Base Account Owner</p>
       </div>
       <div class="dark-card rounded-lg p-6">
         <h2 class="text-xl font-black">Informasi Payout</h2>

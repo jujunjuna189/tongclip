@@ -49,7 +49,7 @@ onMounted(async () => {
             Video belum tersedia.
           </div>
           <div class="border-t border-white/10 p-6">
-            <div class="text-xs font-semibold uppercase tracking-[.14em] text-blue-200">{{ course.level }} • {{ course.duration }}</div>
+            <div class="text-xs font-semibold uppercase tracking-[.14em] text-gradient-primary">{{ course.level }} • {{ course.duration }}</div>
             <h1 class="mt-3 text-3xl font-semibold tracking-[-.03em]">{{ activeLesson?.title || course.title }}</h1>
             <p class="mt-3 max-w-3xl text-sm leading-7 text-white/52">{{ course.description }}</p>
           </div>
@@ -63,14 +63,14 @@ onMounted(async () => {
                 v-for="(lesson, index) in course.lessons || []"
                 :key="lesson.title"
                 class="flex w-full items-center justify-between rounded-lg border p-4 text-left transition"
-                :class="activeLessonIndex === index ? 'border-blue-400/45 bg-blue-500/10' : 'border-white/10 bg-white/[.025] hover:border-blue-400/35'"
+                :class="activeLessonIndex === index ? 'border-purple-400/45 bg-purple-500/10' : 'border-white/10 bg-white/[.025] hover:border-purple-400/35'"
                 @click="activeLessonIndex = index"
               >
                 <div>
                   <div class="font-semibold">{{ lesson.title }}</div>
                   <div class="mt-1 text-xs text-white/42">{{ lesson.duration }}</div>
                 </div>
-                <PlayCircleIcon class="h-5 w-5 text-blue-300" />
+                <PlayCircleIcon class="h-5 w-5 text-purple-300" />
               </button>
             </div>
           </section>
@@ -79,7 +79,7 @@ onMounted(async () => {
             <h2 class="text-lg font-semibold">Checklist</h2>
             <div class="mt-4 space-y-3 text-sm text-white/58">
               <div v-for="item in ['Tonton sampai selesai', 'Catat formula hook', 'Praktik di campaign aktif']" :key="item" class="flex items-center gap-3">
-                <CheckCircleIcon class="h-5 w-5 text-blue-300" />
+                <CheckCircleIcon class="h-5 w-5 text-purple-300" />
                 {{ item }}
               </div>
             </div>

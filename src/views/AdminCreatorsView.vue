@@ -26,7 +26,9 @@ const deleteCreator = async (creator) => {
   await store.deleteAdminCreator(creator.id)
 }
 
-onMounted(() => store.loadAdminCreators())
+onMounted(() => {
+  store.loadAdminCreators()
+})
 </script>
 
 <template>
@@ -49,7 +51,7 @@ onMounted(() => store.loadAdminCreators())
           <RouterLink to="/admin/creators/invite" class="inline-flex h-10 items-center rounded-lg bg-white/[.055] px-4 text-sm font-semibold text-white/72 transition hover:bg-white/[.085]">
             Undang
           </RouterLink>
-          <RouterLink to="/admin/creators/create" class="inline-flex h-10 items-center gap-2 rounded-lg bg-bluebrand px-4 text-sm font-semibold text-white shadow-blue">
+          <RouterLink to="/admin/creators/create" class="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 text-sm font-semibold text-white shadow-blue">
             <PlusIcon class="h-4 w-4 stroke-[2]" />
             Tambah
           </RouterLink>
@@ -59,7 +61,7 @@ onMounted(() => store.loadAdminCreators())
       <section v-if="viewMode === 'card'" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article v-for="creator in creators" :key="creator.handle" class="dark-card rounded-lg p-5">
           <div class="flex items-center gap-3">
-            <div class="grid h-12 w-12 place-items-center rounded-lg bg-blue-500/14 text-base font-black text-blue-100/90">{{ creator.name?.[0] }}</div>
+            <div class="grid h-12 w-12 place-items-center rounded-lg bg-purple-500/14 text-base font-black text-purple-100/90">{{ creator.name?.[0] }}</div>
             <div>
               <h2 class="font-semibold text-white/88">{{ creator.name }}</h2>
               <p class="mt-1 text-xs text-white/38">{{ creator.handle }}</p>
@@ -67,7 +69,7 @@ onMounted(() => store.loadAdminCreators())
           </div>
           <div class="mt-6 rounded-lg bg-white/[.035] p-4">
             <div class="text-xs text-white/34">Pendapatan</div>
-            <div class="mt-2 text-xl font-semibold text-blue-200/90">{{ creator.income }}</div>
+            <div class="mt-2 text-xl font-semibold text-gradient-primary">{{ creator.income }}</div>
           </div>
           <div class="mt-5 flex gap-2">
             <button class="h-9 rounded-lg bg-white/[.055] px-4 text-xs font-semibold text-white/72 hover:bg-white/[.085]" type="button" @click="editCreator(creator)">Edit</button>
@@ -92,12 +94,12 @@ onMounted(() => store.loadAdminCreators())
               <tr v-for="creator in creators" :key="creator.handle" class="group text-white/68">
                 <td class="rounded-l-lg border-y border-l border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <div class="flex items-center gap-3">
-                    <div class="grid h-10 w-10 place-items-center rounded-lg bg-blue-500/14 text-sm font-black text-blue-100/90">{{ creator.name?.[0] }}</div>
+                    <div class="grid h-10 w-10 place-items-center rounded-lg bg-purple-500/14 text-sm font-black text-purple-100/90">{{ creator.name?.[0] }}</div>
                     <div class="text-sm font-semibold text-white/86">{{ creator.name }}</div>
                   </div>
                 </td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ creator.handle }}</td>
-                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 font-semibold text-blue-200/90 transition group-hover:bg-white/[.045]">{{ creator.income }}</td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 font-semibold text-gradient-primary transition group-hover:bg-white/[.045]">{{ creator.income }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-[11px] font-medium text-emerald-100/82">{{ creator.status || 'Active' }}</span>
                 </td>

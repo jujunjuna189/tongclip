@@ -44,7 +44,7 @@ const statusLabel = computed(() => {
 })
 const statusClass = computed(() => {
   if (campaign.value.submission_status === 'review') return 'text-amber-300'
-  if (campaign.value.joined) return 'text-blue-300'
+  if (campaign.value.joined) return 'text-purple-300'
   return 'text-emerald-300'
 })
 
@@ -94,14 +94,14 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
             <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }">
               <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent"></div>
               <div class="absolute left-6 top-6 flex flex-wrap gap-2">
-                <span class="rounded-full border border-blue-300/40 bg-blue-500/15 px-4 py-2 text-xs font-medium text-blue-100">{{ campaign.type }}</span>
+                <span class="rounded-full border border-purple-300/40 bg-purple-500/15 px-4 py-2 text-xs font-medium text-purple-100">{{ campaign.type }}</span>
                 <span class="rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-medium text-white/68">{{ campaign.category }}</span>
               </div>
               <button class="absolute right-6 top-6 grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-black/45 text-white/72 backdrop-blur hover:text-white">
                 <ArrowTopRightOnSquareIcon class="h-5 w-5" />
               </button>
               <div class="absolute bottom-7 left-7 right-7">
-                <p class="text-sm font-medium text-blue-200">{{ campaign.brand }}</p>
+                <p class="text-sm font-medium text-purple-200">{{ campaign.brand }}</p>
                 <h1 class="mt-3 max-w-4xl text-[36px] font-semibold leading-tight tracking-[-.03em]">{{ campaign.title }}</h1>
               <p class="mt-3 max-w-2xl text-sm leading-6 text-white/56">{{ campaign.brief }}</p>
               </div>
@@ -137,7 +137,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
                 v-for="tab in tabs"
                 :key="tab"
                 class="rounded-lg px-4 py-2 text-sm font-medium transition"
-                :class="activeTab === tab ? 'bg-bluebrand text-white' : 'text-white/42 hover:bg-white/[.045] hover:text-white'"
+                :class="activeTab === tab ? 'bg-gradient-to-b from-[#a088ff] to-bluebrand text-white' : 'text-white/42 hover:bg-white/[.045] hover:text-white'"
                 @click="activeTab = tab"
               >
                 {{ tab }}
@@ -149,7 +149,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
               <p class="mt-3 max-w-3xl text-sm leading-7 text-white/56">Buat clipping dari materi brand. Fokus pada hook kuat, benefit utama, visual produk/brand, dan CTA yang jelas. Konten harus terasa natural seperti rekomendasi creator, bukan hard selling.</p>
               <div class="mt-5 grid gap-3 md:grid-cols-3">
                 <div v-for="item in ['Hook cepat', 'Benefit jelas', 'CTA submit']" :key="item" class="rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm font-medium text-white/70">
-                  <CheckCircleIcon class="mb-3 h-5 w-5 text-blue-300" />
+                  <CheckCircleIcon class="mb-3 h-5 w-5 text-purple-300" />
                   {{ item }}
                 </div>
               </div>
@@ -159,7 +159,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
               <h2 class="text-xl font-semibold tracking-[-.015em]">Aturan Konten</h2>
               <div class="mt-4 space-y-3">
                 <div v-for="rule in rules" :key="rule" class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm text-white/62">
-                  <CheckCircleIcon class="h-5 w-5 shrink-0 text-blue-300" />
+                  <CheckCircleIcon class="h-5 w-5 shrink-0 text-purple-300" />
                   {{ rule }}
                 </div>
               </div>
@@ -170,7 +170,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
               <div class="mt-4 grid gap-3 md:grid-cols-3">
                 <button v-for="asset in campaign.assets || []" :key="asset" class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm font-medium text-white/70">
                   {{ asset }}
-                  <CloudArrowDownIcon class="h-5 w-5 text-blue-300" />
+                  <CloudArrowDownIcon class="h-5 w-5 text-purple-300" />
                 </button>
               </div>
             </div>
@@ -182,7 +182,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
                 <input v-model="videoUrl" class="h-11 flex-1 bg-transparent text-sm outline-none placeholder:text-white/30" placeholder="Paste link TikTok / Instagram / YouTube" />
                 <button class="btn-blue rounded-lg px-5 text-sm font-semibold disabled:opacity-50" :disabled="submitting || !videoUrl" @click="submitVideo">Submit</button>
               </div>
-              <p v-if="actionMessage" class="mt-3 text-sm font-medium text-blue-300">{{ actionMessage }}</p>
+              <p v-if="actionMessage" class="mt-3 text-sm font-medium text-purple-300">{{ actionMessage }}</p>
               <div v-if="campaign.submissions?.length" class="mt-5 space-y-3">
                 <h3 class="text-sm font-semibold text-white/72">Submission Kamu</h3>
                 <div
@@ -191,7 +191,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
                   class="rounded-lg border border-white/10 bg-white/[.025] p-4"
                 >
                   <div class="flex flex-wrap items-center justify-between gap-3">
-                    <a :href="submission.video_url" target="_blank" rel="noreferrer" class="max-w-[680px] truncate text-sm font-medium text-blue-300 hover:text-blue-100">
+                    <a :href="submission.video_url" target="_blank" rel="noreferrer" class="max-w-[680px] truncate text-sm font-medium text-purple-300 hover:text-purple-100">
                       {{ submission.video_url }}
                     </a>
                     <span class="rounded-full border border-amber-300/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-100">{{ submission.status }}</span>
@@ -229,7 +229,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
             <h2 class="text-lg font-semibold">Cara Submit</h2>
             <div class="mt-4 space-y-4">
               <div v-for="(step, index) in ['Ambil campaign', 'Posting video', 'Submit link', 'Tunggu approval']" :key="step" class="flex gap-3 text-sm text-white/56">
-                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-500/15 text-xs font-semibold text-blue-200">{{ index + 1 }}</span>
+                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-purple-500/15 text-xs font-semibold text-gradient-primary">{{ index + 1 }}</span>
                 {{ step }}
               </div>
             </div>
@@ -237,13 +237,13 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
 
           <section class="dark-card rounded-lg p-5">
             <div class="flex items-center gap-3">
-              <PlayCircleIcon class="h-8 w-8 text-blue-300" />
+              <PlayCircleIcon class="h-8 w-8 text-purple-300" />
               <div>
                 <h2 class="font-semibold">Course Gratis</h2>
                 <p class="text-xs text-white/42">Pelajari cara bikin clip yang cepat approve.</p>
               </div>
             </div>
-            <RouterLink to="/course-gratis" class="mt-4 inline-flex text-sm font-medium text-blue-300">Buka course →</RouterLink>
+            <RouterLink to="/course-gratis" class="mt-4 inline-flex text-sm font-medium text-purple-300">Buka course →</RouterLink>
           </section>
         </aside>
       </section>

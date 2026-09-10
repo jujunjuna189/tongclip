@@ -4,14 +4,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        bluebrand: '#1F6BFF',
-        blueglow: '#70B9FF',
+        purple: {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#dfc6ff',
+          500: '#886bff',
+          600: '#7551e9',
+          700: '#6139d2',
+          800: '#532bb9',
+          900: '#46239f',
+          950: '#2b106c',
+        },
+        bluebrand: '#886bff',
+        blueglow: '#dfc6ff',
         night: '#050505',
         panel: '#101010',
         line: '#242424',
       },
       boxShadow: {
-        blue: '0 0 36px rgba(31,107,255,.52)',
+        blue: '0 0 36px rgba(136,107,255,.52)',
         card: '0 24px 80px rgba(0,0,0,.42)',
       },
     },

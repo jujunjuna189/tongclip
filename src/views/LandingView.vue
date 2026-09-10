@@ -29,9 +29,9 @@ const steps = [
 
     <section class="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-5 pb-20 pt-10 md:px-8 lg:grid-cols-[1.05fr_.95fr]">
       <div class="relative z-10">
-        <p class="mb-5 inline-flex rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-200">Creator Brand Marketplace</p>
+        <p class="mb-5 inline-flex rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-sm font-bold text-gradient-primary">Creator Brand Marketplace</p>
         <h1 class="max-w-5xl text-5xl font-light leading-tight tracking-normal md:text-7xl">
-          Ladang cuan baru buat <span class="font-semibold text-bluebrand drop-shadow-[0_0_18px_rgba(31,107,255,.8)]">clipper</span> di Indonesia.
+          Ladang cuan baru buat <span class="font-semibold text-gradient-primary drop-shadow-[0_0_18px_rgba(136,107,255,.8)]">clipper</span> di Indonesia.
         </h1>
         <p class="mt-7 max-w-3xl text-lg leading-9 text-white/72">
           Gabung campaign brand, clipping konten, submit video, dan pantau pendapatan dalam satu dashboard yang simpel buat creator.
@@ -53,23 +53,23 @@ const steps = [
         <div class="glass absolute right-0 top-2 w-80 rounded-lg p-5 shadow-card">
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold text-white/55">Payout ID : 120</span>
-            <span class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-black text-blue-200">Approved</span>
+            <span class="rounded-full bg-purple-500/20 px-3 py-1 text-xs font-black text-gradient-primary">Approved</span>
           </div>
           <div class="mt-8 grid grid-cols-2 gap-4">
             <div><div class="text-sm text-white/45">Views Jumlah</div><div class="mt-1 text-3xl font-black">20K</div></div>
-            <div><div class="text-sm text-white/45">Saldo Masuk</div><div class="mt-1 text-3xl font-black text-blue-300">Rp100K</div></div>
+            <div><div class="text-sm text-white/45">Saldo Masuk</div><div class="mt-1 text-3xl font-black text-gradient-primary">Rp100K</div></div>
           </div>
         </div>
         <div class="glass absolute bottom-16 left-0 w-[400px] overflow-hidden rounded-lg shadow-card">
           <div class="h-56 bg-[url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80')] bg-cover bg-center"></div>
           <div class="p-5">
             <div class="flex items-center gap-3">
-              <div class="grid h-10 w-10 place-items-center rounded-full bg-bluebrand font-black">S</div>
+              <div class="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand font-black">S</div>
               <div><div class="font-black">Sulianto Indria Putra</div><div class="text-sm text-white/45">@superclips 2 hari lalu</div></div>
             </div>
             <div class="mt-5 grid grid-cols-3 gap-3 text-sm">
               <div><div class="text-white/45">Views</div><div class="font-black">250K</div></div>
-              <div><div class="text-white/45">Payout</div><div class="font-black text-blue-300">Rp1.4JT</div></div>
+              <div><div class="text-white/45">Payout</div><div class="font-black text-gradient-primary">Rp1.4JT</div></div>
               <div><div class="text-white/45">Claim</div><div class="font-black">1000/1000</div></div>
             </div>
           </div>
@@ -80,7 +80,7 @@ const steps = [
     <section id="fitur" class="mx-auto max-w-7xl px-5 pb-10 md:px-8">
       <div class="grid gap-4 md:grid-cols-3">
         <div v-for="feature in ['Multi akun dalam 1 base akun', 'Penarikan dana tanggal 15 & 16', 'Campaign clipping', 'Pencatatan pendapatan', 'Course gratis']" :key="feature" class="dark-card rounded-lg p-5">
-          <div class="mb-5 h-2 w-14 rounded-full bg-bluebrand"></div>
+          <div class="mb-5 h-2 w-14 rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand"></div>
           <h3 class="text-xl font-black">{{ feature }}</h3>
         </div>
       </div>
@@ -88,11 +88,11 @@ const steps = [
 
     <section id="cara-kerja" class="mx-auto max-w-7xl px-5 pb-24 md:px-8">
       <div class="rounded-[28px] bg-white p-6 text-slate-950 md:p-10">
-        <p class="font-black text-bluebrand">Gimana Cara Kerjanya?</p>
+        <p class="font-black text-gradient-primary">Gimana Cara Kerjanya?</p>
         <h2 class="mt-2 text-4xl font-black tracking-tight">3 langkah doang. Tinggal posting, cuan ngalir.</h2>
         <div class="mt-8 grid gap-5 md:grid-cols-3">
           <article v-for="(step, index) in steps" :key="step[0]" class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-            <div class="grid h-12 w-12 place-items-center rounded-xl bg-bluebrand text-xl font-black text-white">{{ index + 1 }}</div>
+            <div class="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-b from-[#a088ff] to-bluebrand text-xl font-black text-white">{{ index + 1 }}</div>
             <h3 class="mt-5 text-xl font-black">{{ step[0] }}</h3>
             <p class="mt-3 leading-7 text-slate-600">{{ step[1] }}</p>
           </article>

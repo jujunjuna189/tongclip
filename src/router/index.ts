@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AuthView from '../views/AuthView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import OnboardingView from '../views/OnboardingView.vue'
 import ReviewView from '../views/ReviewView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
@@ -23,12 +26,16 @@ import ContactAdminView from '../views/ContactAdminView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import AnnouncementsView from '../views/AnnouncementsView.vue'
 import LogoutView from '../views/LogoutView.vue'
+import { useClipperStore } from '../stores/clipper'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/auth' },
     { path: '/auth', name: 'auth', component: AuthView, meta: { title: 'Auth' } },
+    { path: '/daftar', name: 'register', component: RegisterView, meta: { title: 'Daftar' } },
+    { path: '/lupa-password', name: 'forgot-password', component: ForgotPasswordView, meta: { title: 'Lupa Password' } },
+    { path: '/onboarding', name: 'onboarding', component: OnboardingView, meta: { title: 'Setup Akun' } },
     { path: '/peninjauan-akun', name: 'review', component: ReviewView, meta: { title: 'Peninjauan Akun' } },
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { title: 'Dashboard' } },
     { path: '/dashboard-admin', redirect: '/admin/dashboard' },
@@ -55,6 +62,29 @@ const router = createRouter({
     { path: '/announcement', name: 'announcements', component: AnnouncementsView, meta: { title: 'Announcement' } },
     { path: '/logout', name: 'logout', component: LogoutView, meta: { title: 'Logout' } },
   ],
+})
+
+router.beforeEach(async (to) => {
+  const publicRoutes = ['auth', 'register', 'forgot-password', 'logout']
+  const store = useClipperStore()
+
+  if (!store.token || publicRoutes.includes(String(to.name))) {
+    return true
+  }
+
+  if (!store.user) {
+    await store.loadMe()
+  }
+
+  if (store.user?.role === 'creator' && !store.user.onboarding_completed && to.name !== 'onboarding') {
+    return { name: 'onboarding' }
+  }
+
+  if (store.user?.onboarding_completed && to.name === 'onboarding') {
+    return { name: 'dashboard' }
+  }
+
+  return true
 })
 
 export default router

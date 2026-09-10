@@ -67,7 +67,7 @@ onMounted(() => store.loadAdminSubmissions())
             <span class="rounded-full bg-amber-400/10 px-3 py-1 text-[11px] font-medium text-amber-100/82">{{ submission.status || 'Review' }}</span>
           </div>
           <div class="mt-5 flex items-center justify-between gap-3">
-            <a :href="submission.link" target="_blank" rel="noreferrer" class="text-sm font-medium text-blue-300">Buka video</a>
+            <a :href="submission.link" target="_blank" rel="noreferrer" class="text-sm font-medium text-purple-300">Buka video</a>
             <div class="flex gap-2">
               <button class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-400/10 text-emerald-100/82 transition hover:bg-emerald-400/16" type="button" @click="updateSubmissionStatus(submission, 'approved')">
                 <CheckIcon class="h-4 w-4" />
@@ -99,7 +99,7 @@ onMounted(() => store.loadAdminSubmissions())
                 <td class="whitespace-nowrap rounded-l-lg border-y border-l border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ submission.submitted_at || '-' }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <div class="max-w-[300px] truncate text-sm font-semibold text-white/86">{{ submission.caption || '-' }}</div>
-                  <a :href="submission.link" target="_blank" rel="noreferrer" class="mt-1 inline-flex text-[11px] text-blue-300">Buka video</a>
+                  <a :href="submission.link" target="_blank" rel="noreferrer" class="mt-1 inline-flex text-[11px] text-purple-300">Buka video</a>
                 </td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ submission.account || '-' }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ submission.type || '-' }}</td>

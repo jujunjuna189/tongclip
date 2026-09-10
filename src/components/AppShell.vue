@@ -17,6 +17,8 @@ import {
   UsersIcon,
   VideoCameraIcon,
   WalletIcon,
+  CheckIcon,
+  PlusIcon,
 } from '@heroicons/vue/24/outline'
 import { useClipperStore } from '../stores/clipper'
 import LogoMark from './LogoMark.vue'
@@ -26,9 +28,40 @@ const store = useClipperStore()
 const collapsed = ref(false)
 const showDashboardMenu = ref(false)
 const accounts = computed(() => store.accounts)
+const isBrand = computed(() => store.user?.role === 'brand')
 const selectedAccountId = computed({
   get: () => store.selectedAccount?.id,
   set: (id) => id && store.setSelectedAccount(Number(id)),
+})
+
+const showCreatorDropdown = ref(false)
+
+const toggleCreatorDropdown = () => {
+  showCreatorDropdown.value = !showCreatorDropdown.value
+}
+
+const selectAccount = (id) => {
+  selectedAccountId.value = id
+  showCreatorDropdown.value = false
+}
+
+const isDropdownDisabled = computed(() => {
+  const acc = store.selectedAccount as any
+  const user = store.user as any
+  
+  if (acc && (acc.access_type === 'member' || acc.role === 'member')) {
+    return true
+  }
+  
+  if (user && (user.access_type === 'member' || user.role === 'member')) {
+    return true
+  }
+  
+  return false
+})
+
+const hasOwnerAccess = computed(() => {
+  return store.accounts.some((acc) => acc.access_type === 'owner') || store.user?.role === 'brand'
 })
 
 const toggleSidebar = () => {
@@ -60,6 +93,10 @@ const activeNav = computed(() => isAdminArea.value ? adminNav : nav)
 const title = computed(() => route.meta?.title || activeNav.value.find(item => item.path === route.path)?.label || (isAdminArea.value ? 'Admin Area' : 'Member Area'))
 
 onMounted(() => {
+  if (store.token && !store.user) {
+    store.loadMe()
+  }
+
   if (!store.accounts.length) {
     store.loadDashboard()
   }
@@ -76,7 +113,7 @@ onMounted(() => {
         <div class="flex items-center transition-all duration-300 ease-out" :class="collapsed ? 'justify-center' : 'gap-3 px-1'">
           <button
             class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border transition"
-            :class="collapsed ? 'border-blue-400 bg-white/[.055] text-white shadow-blue' : 'border-white/10 bg-white/[.055] text-white/62 hover:border-blue-400/50 hover:text-white'"
+            :class="collapsed ? 'border-purple-400 bg-white/[.055] text-white shadow-blue' : 'border-white/10 bg-white/[.055] text-white/62 hover:border-purple-400/50 hover:text-white'"
             type="button"
             @click="toggleSidebar"
             aria-label="Toggle sidebar"
@@ -111,7 +148,7 @@ onMounted(() => {
               class="grid shrink-0 place-items-center rounded-md border transition-all duration-300 ease-out"
               :class="[
                 collapsed ? 'h-10 w-10' : 'h-7 w-7',
-                route.path === item.path || route.path.startsWith(item.path + '/') ? 'border-blue-400/35 bg-blue-500/18 text-blue-200' : 'border-white/10 bg-white/[.035] text-white/42 group-hover:text-blue-200'
+                route.path === item.path || route.path.startsWith(item.path + '/') ? 'border-purple-400/35 bg-purple-500/18 text-purple-200' : 'border-white/10 bg-white/[.035] text-white/42 group-hover:text-purple-200'
               ]"
             >
               <component :is="item.icon" :class="collapsed ? 'h-5 w-5' : 'h-4 w-4'" class="stroke-[1.8]" />
@@ -136,7 +173,7 @@ onMounted(() => {
             </template>
             <template v-else>
               <p class="text-xs leading-5 text-white/42">Belum join campaign apapun.</p>
-              <RouterLink to="/campaigns" class="mt-3 inline-flex text-xs font-semibold text-blue-400">Jelajahi campaign →</RouterLink>
+              <RouterLink to="/campaigns" class="mt-3 inline-flex text-xs font-semibold text-gradient-primary">Jelajahi campaign →</RouterLink>
             </template>
           </div>
         </div>
@@ -182,19 +219,61 @@ onMounted(() => {
       <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-white/10 bg-[#0B0B0D]/90 px-5 backdrop-blur md:px-7">
         <div class="text-[15px] font-medium text-white/82">{{ title }}</div>
         <div class="flex items-center gap-4">
-          <div class="relative hidden md:block">
-            <select v-model="selectedAccountId" class="h-10 min-w-[320px] appearance-none rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-9 text-xs font-medium text-white/78 outline-none">
-              <option v-for="account in accounts" :key="account.id" :value="account.id" class="bg-black">{{ account.name }} - {{ account.handle }}</option>
-            </select>
-            <ChevronDownIcon class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/58" />
+          <div v-if="accounts.length" class="relative hidden md:block">
+            <button 
+              type="button" 
+              class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="isDropdownDisabled"
+              @click="toggleCreatorDropdown"
+            >
+              <span>{{ store.selectedAccount ? `${store.selectedAccount.name} - ${store.selectedAccount.handle} ${store.selectedAccount.type === 'user' ? '(User)' : `(${store.selectedAccount.platform || 'Brand'})`}` : 'Pilih Akun' }}</span>
+              <ChevronDownIcon v-if="!isDropdownDisabled" class="h-4 w-4 text-white/58" />
+            </button>
+            
+            <div 
+              v-if="showCreatorDropdown" 
+              class="absolute left-0 top-12 z-30 w-full rounded-lg border border-white/10 bg-[#111113] p-1.5 shadow-[0_18px_42px_rgba(0,0,0,.38)] max-h-60 overflow-y-auto"
+            >
+              <button 
+                v-for="account in accounts" 
+                :key="account.id" 
+                class="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left text-xs font-medium text-white/78 transition hover:bg-white/[.065] hover:text-white"
+                @click="selectAccount(account.id)"
+              >
+                <span>{{ account.name }} - {{ account.handle }} {{ account.type === 'user' ? '(User)' : `(${account.platform || 'Brand'})` }}</span>
+                <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 text-purple-400" />
+              </button>
+              
+              <div v-if="hasOwnerAccess" class="mt-1 border-t border-white/10 pt-1">
+                <RouterLink 
+                  to="/admin/creators/invite" 
+                  class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"
+                  @click="showCreatorDropdown = false"
+                >
+                  <PlusIcon class="h-4 w-4" />
+                  Tambah Creator Baru
+                </RouterLink>
+              </div>
+            </div>
           </div>
           <RouterLink to="/announcement" class="relative grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm text-white/70">
             <BellIcon class="h-5 w-5 stroke-[1.8]" />
-            <span class="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-bluebrand text-[10px] font-black">1</span>
+            <span class="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand text-[10px] font-black">1</span>
           </RouterLink>
-          <div class="relative">
+          <div v-if="store.selectedAccount" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80">
+            <template v-if="store.selectedAccount.avatar_url">
+              <img :src="store.selectedAccount.avatar_url" alt="Avatar" class="h-full w-full rounded-lg object-cover" />
+            </template>
+            <template v-else>
+              {{ store.selectedAccount.name.charAt(0).toUpperCase() }}
+            </template>
+          </div>
+          <div v-else-if="store.user" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80">
+            {{ store.user.name.charAt(0).toUpperCase() }}
+          </div>
+          <div v-if="isBrand" class="relative">
             <button
-              class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-white/70 transition hover:border-blue-400/40 hover:text-white"
+              class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-white/70 transition hover:border-purple-400/40 hover:text-white"
               type="button"
               aria-label="Pindah dashboard"
               @click="toggleDashboardMenu"
@@ -211,7 +290,7 @@ onMounted(() => {
                 class="flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-white/78 transition hover:bg-white/[.065] hover:text-white"
                 @click="showDashboardMenu = false"
               >
-                <HomeIcon class="h-5 w-5 stroke-[1.8] text-blue-300" />
+                <HomeIcon class="h-5 w-5 stroke-[1.8] text-purple-300" />
                 Dashboard Creator
               </RouterLink>
               <RouterLink
@@ -219,7 +298,7 @@ onMounted(() => {
                 class="flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-white/78 transition hover:bg-white/[.065] hover:text-white"
                 @click="showDashboardMenu = false"
               >
-                <ChartBarIcon class="h-5 w-5 stroke-[1.8] text-blue-300" />
+                <ChartBarIcon class="h-5 w-5 stroke-[1.8] text-purple-300" />
                 Dashboard Admin
               </RouterLink>
             </div>
