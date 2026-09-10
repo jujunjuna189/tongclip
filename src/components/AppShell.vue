@@ -46,8 +46,8 @@ const selectAccount = (id) => {
 }
 
 const isDropdownDisabled = computed(() => {
-  const acc = store.selectedAccount as any
-  const user = store.user as any
+  const acc = store.selectedAccount
+  const user = store.user
   
   if (acc && (acc.access_type === 'member' || acc.role === 'member')) {
     return true
