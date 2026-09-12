@@ -45,7 +45,8 @@ export type Campaign = {
     submitted_at?: string
   }>
   brief?: string
-  assets?: string[]
+  rules?: string[]
+  assets?: Array<string | { title?: string; url?: string }>
   platforms?: string[]
 }
 
@@ -53,14 +54,19 @@ export type AdminCampaignPayload = {
   title: string
   brand: string
   image_url?: string
+  hero_image?: File | null
   rate_per_view: number
   category: string
   budget_percent: number
   views_target: number
   type: string
   status: string
+  exclusive?: boolean
   deadline_at?: string
   brief?: string
+  rules?: string[]
+  assets?: Array<string | { title?: string; url?: string }>
+  platforms?: string[]
 }
 
 export type Income = {
@@ -120,7 +126,9 @@ export type AdminSubmission = VideoSubmission & {
   campaign?: string | null
   creator?: string | null
   views?: string
+  views_value?: number
   estimated_payout?: string
+  estimated_payout_value?: number
 }
 
 export type AdminCreator = User & {
@@ -168,6 +176,16 @@ export type Announcement = {
   published_at?: string
 }
 
+export type NotificationItem = {
+  id: number
+  type: string
+  title: string
+  body?: string | null
+  data?: Record<string, unknown> | null
+  read_at?: string | null
+  created_at?: string | null
+}
+
 export type Course = {
   id: number
   title: string
@@ -177,6 +195,17 @@ export type Course = {
   level?: string
   url?: string
   lessons?: Array<{ title: string; duration: string; video_url?: string }>
+  resources?: string[]
+}
+
+export type CoursePayload = {
+  title: string
+  description: string
+  image_url?: string
+  duration?: string
+  level?: string
+  url?: string
+  lessons?: Array<{ title?: string; duration?: string; video_url?: string }>
   resources?: string[]
 }
 
@@ -193,6 +222,8 @@ export const useClipperStore = defineStore('clipper', {
     incomes: [] as Income[],
     incomeSummary: null as IncomeSummary | null,
     announcements: [] as Announcement[],
+    notifications: [] as NotificationItem[],
+    unreadNotifications: 0,
     leaderboard: [] as User[],
     onboarding: null as OnboardingState | null,
     courses: [] as Course[],
@@ -265,6 +296,22 @@ export const useClipperStore = defineStore('clipper', {
     async loadMe() {
       const { data } = await api.get('/me')
       this.user = data
+      return data as User
+    },
+    async updateProfile(payload: Partial<{
+      name: string
+      handle: string
+      avatar_url: string
+      avatar: File
+      bank_name: string
+      bank_account_number: string
+      bank_account_name: string
+    }> | FormData) {
+      const { data } = payload instanceof FormData
+        ? await api.post('/profile', payload)
+        : await api.patch('/profile', payload)
+      this.user = data
+      await this.loadDashboard()
       return data as User
     },
     async loadOnboarding() {
@@ -431,9 +478,28 @@ export const useClipperStore = defineStore('clipper', {
       const { data } = await api.get('/income-summary')
       this.incomeSummary = data
     },
+    async requestWithdrawal(payload: { amount: number }) {
+      const { data } = await api.post('/withdrawals', payload)
+      await this.loadDashboard()
+      await this.loadIncomes()
+      return data
+    },
     async loadAnnouncements() {
       const { data } = await api.get('/announcements')
       this.announcements = data
+    },
+    async loadNotifications() {
+      const { data } = await api.get('/notifications')
+      this.notifications = data.items || []
+      this.unreadNotifications = data.unread_count || 0
+    },
+    async markNotificationsRead() {
+      await api.post('/notifications/read')
+      this.unreadNotifications = 0
+      this.notifications = this.notifications.map((notification) => ({
+        ...notification,
+        read_at: notification.read_at || new Date().toISOString(),
+      }))
     },
     async loadLeaderboard() {
       const { data } = await api.get('/leaderboard')
@@ -454,6 +520,22 @@ export const useClipperStore = defineStore('clipper', {
       }
 
       return data as Course
+    },
+    async loadAdminCourses() {
+      const { data } = await api.get('/admin/courses')
+      this.courses = data
+    },
+    async createAdminCourse(payload: CoursePayload) {
+      await api.post('/admin/courses', payload)
+      await this.loadAdminCourses()
+    },
+    async updateAdminCourse(id: number, payload: Partial<CoursePayload>) {
+      await api.patch(`/admin/courses/${id}`, payload)
+      await this.loadAdminCourses()
+    },
+    async deleteAdminCourse(id: number) {
+      await api.delete(`/admin/courses/${id}`)
+      await this.loadAdminCourses()
     },
     async loadAdminCampaigns() {
       const { data } = await api.get('/admin/campaigns')
@@ -488,12 +570,17 @@ export const useClipperStore = defineStore('clipper', {
       const { data } = await api.get('/admin/payouts')
       this.adminPayouts = data
     },
-    async createAdminCampaign(payload: AdminCampaignPayload) {
+    async createAdminCampaign(payload: AdminCampaignPayload | FormData) {
       await api.post('/admin/campaigns', payload)
       await this.loadAdminCampaigns()
     },
-    async updateAdminCampaign(id: number, payload: Partial<AdminCampaignPayload>) {
-      await api.patch(`/admin/campaigns/${id}`, payload)
+    async updateAdminCampaign(id: number, payload: Partial<AdminCampaignPayload> | FormData) {
+      if (payload instanceof FormData) {
+        payload.append('_method', 'PATCH')
+        await api.post(`/admin/campaigns/${id}`, payload)
+      } else {
+        await api.patch(`/admin/campaigns/${id}`, payload)
+      }
       await this.loadAdminCampaigns()
     },
     async deleteAdminCampaign(id: number) {

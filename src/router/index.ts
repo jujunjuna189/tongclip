@@ -3,7 +3,6 @@ import AuthView from '../views/AuthView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import OnboardingView from '../views/OnboardingView.vue'
-import ReviewView from '../views/ReviewView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
 import AdminCampaignsView from '../views/AdminCampaignsView.vue'
@@ -14,6 +13,9 @@ import AdminCreatorCreateView from '../views/AdminCreatorCreateView.vue'
 import AdminCreatorInviteView from '../views/AdminCreatorInviteView.vue'
 import AdminPayoutsView from '../views/AdminPayoutsView.vue'
 import AdminSubmissionsView from '../views/AdminSubmissionsView.vue'
+import AdminCoursesView from '../views/AdminCoursesView.vue'
+import AdminCourseCreateView from '../views/AdminCourseCreateView.vue'
+import AdminCourseEditView from '../views/AdminCourseEditView.vue'
 import PaymentView from '../views/PaymentView.vue'
 import IncomeView from '../views/IncomeView.vue'
 import CampaignsView from '../views/CampaignsView.vue'
@@ -36,7 +38,7 @@ const router = createRouter({
     { path: '/daftar', name: 'register', component: RegisterView, meta: { title: 'Daftar' } },
     { path: '/lupa-password', name: 'forgot-password', component: ForgotPasswordView, meta: { title: 'Lupa Password' } },
     { path: '/onboarding', name: 'onboarding', component: OnboardingView, meta: { title: 'Setup Akun' } },
-    { path: '/peninjauan-akun', name: 'review', component: ReviewView, meta: { title: 'Peninjauan Akun' } },
+    { path: '/peninjauan-akun', redirect: '/onboarding' },
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { title: 'Dashboard' } },
     { path: '/dashboard-admin', redirect: '/admin/dashboard' },
     { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboardView, meta: { title: 'Dashboard Admin' } },
@@ -48,6 +50,9 @@ const router = createRouter({
     { path: '/admin/creators/create', name: 'admin-creator-create', component: AdminCreatorCreateView, meta: { title: 'Tambah Creator' } },
     { path: '/admin/creators/invite', name: 'admin-creator-invite', component: AdminCreatorInviteView, meta: { title: 'Undang Creator' } },
     { path: '/admin/payouts', name: 'admin-payouts', component: AdminPayoutsView, meta: { title: 'Payout' } },
+    { path: '/admin/courses', name: 'admin-courses', component: AdminCoursesView, meta: { title: 'Kelola Course Gratis' } },
+    { path: '/admin/courses/create', name: 'admin-course-create', component: AdminCourseCreateView, meta: { title: 'Tambah Course' } },
+    { path: '/admin/courses/:id/edit', name: 'admin-course-edit', component: AdminCourseEditView, meta: { title: 'Edit Course' } },
     { path: '/payment', name: 'payment', component: PaymentView, meta: { title: 'Pendapatan' } },
     { path: '/pendapatan', name: 'income', component: IncomeView, meta: { title: 'Pendapatan' } },
     { path: '/campaigns', name: 'campaigns', component: CampaignsView, meta: { title: 'Campaigns' } },

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
@@ -11,6 +11,7 @@ const store = useClipperStore()
 const saving = ref(false)
 const loading = ref(true)
 const currentStep = ref(0)
+const heroImagePreview = ref('')
 const steps = [
   { title: 'Informasi', description: 'Campaign dan brand' },
   { title: 'Aturan', description: 'Budget dan target' },
@@ -26,14 +27,20 @@ const form = ref({
   views_target: 0,
   deadline_at: '',
   image_url: '',
+  hero_image: null,
   status: 'active',
+  exclusive: false,
   brief: '',
+  rules: [''],
+  assets: [{ title: '', url: '' }],
+  platforms: [''],
 })
 
 const inputClass = 'form-control'
 const selectClass = 'form-control form-select'
 const numberClass = 'form-control form-number'
 const labelClass = 'text-xs font-medium text-white/44'
+const textareaClass = 'mt-2 w-full resize-y rounded-lg border border-white/[.08] bg-black/20 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/24 focus:border-purple-400/55 focus:bg-black/30'
 const campaignId = computed(() => Number(route.params.id))
 const isFirstStep = computed(() => currentStep.value === 0)
 const isLastStep = computed(() => currentStep.value === steps.length - 1)
@@ -49,6 +56,97 @@ const canContinue = computed(() => {
   return true
 })
 
+const cleanList = (items) => items
+  .map((item) => String(item).trim())
+  .filter(Boolean)
+
+const cleanAssets = (items) => items
+  .map((item) => ({
+    title: String(item.title || '').trim(),
+    url: String(item.url || '').trim(),
+  }))
+  .filter((item) => item.title || item.url)
+
+const normalizeAssets = (items) => {
+  const normalized = Array.isArray(items)
+    ? items.map((item) => {
+      if (typeof item === 'string') {
+        return { title: item, url: '' }
+      }
+
+      return {
+        title: String(item?.title || '').trim(),
+        url: String(item?.url || '').trim(),
+      }
+    }).filter((item) => item.title || item.url)
+    : []
+
+  return normalized.length ? normalized : [{ title: '', url: '' }]
+}
+
+const buildPayload = () => {
+  const payload = new FormData()
+  const rules = cleanList(form.value.rules)
+  const assets = cleanAssets(form.value.assets)
+  const platforms = cleanList(form.value.platforms)
+
+  payload.append('title', form.value.title)
+  payload.append('brand', form.value.brand)
+  payload.append('category', form.value.category)
+  payload.append('type', form.value.type)
+  payload.append('status', form.value.status)
+  payload.append('exclusive', form.value.exclusive ? '1' : '0')
+  payload.append('rate_per_view', String(form.value.rate_per_view))
+  payload.append('budget_percent', String(form.value.budget_percent))
+  payload.append('views_target', String(form.value.views_target))
+  if (form.value.deadline_at) payload.append('deadline_at', form.value.deadline_at)
+  if (form.value.image_url) payload.append('image_url', form.value.image_url)
+  if (form.value.brief) payload.append('brief', form.value.brief)
+  if (form.value.hero_image) payload.append('hero_image', form.value.hero_image)
+  rules.forEach((rule) => payload.append('rules[]', rule))
+  platforms.forEach((platform) => payload.append('platforms[]', platform))
+  assets.forEach((asset, index) => {
+    payload.append(`assets[${index}][title]`, asset.title)
+    payload.append(`assets[${index}][url]`, asset.url)
+  })
+
+  return payload
+}
+
+const selectHeroImage = (event) => {
+  const file = event.target.files?.[0]
+  form.value.hero_image = file || null
+  heroImagePreview.value = file ? URL.createObjectURL(file) : form.value.image_url
+}
+
+const ensureList = (items, fallback = ['']) => {
+  const cleanItems = Array.isArray(items) ? items.map((item) => String(item)) : []
+  return cleanItems.length ? cleanItems : fallback
+}
+
+const addListItem = (key, value = '') => {
+  form.value[key].push(value)
+}
+
+const addAsset = () => {
+  form.value.assets.push({ title: '', url: '' })
+}
+
+const removeListItem = (key, index) => {
+  if (form.value[key].length <= 1) {
+    form.value[key][index] = ''
+    return
+  }
+
+  form.value[key].splice(index, 1)
+}
+
+const listLabel = {
+  rules: 'Aturan',
+  assets: 'Asset',
+  platforms: 'Platform',
+}
+
 const nextStep = () => {
   if (!canContinue.value || isLastStep.value) return
   currentStep.value += 1
@@ -63,12 +161,7 @@ const updateCampaign = async () => {
   saving.value = true
 
   try {
-    await store.updateAdminCampaign(campaignId.value, {
-      ...form.value,
-      image_url: form.value.image_url || undefined,
-      deadline_at: form.value.deadline_at || undefined,
-      brief: form.value.brief || undefined,
-    })
+    await store.updateAdminCampaign(campaignId.value, buildPayload())
     router.push('/admin/campaigns')
   } finally {
     saving.value = false
@@ -88,9 +181,15 @@ onMounted(async () => {
     views_target: campaign.views_value,
     deadline_at: campaign.deadline_value || '',
     image_url: campaign.image || '',
+    hero_image: null,
     status: campaign.status?.toLowerCase() || 'active',
+    exclusive: Boolean(campaign.exclusive),
     brief: campaign.brief || '',
+    rules: ensureList(campaign.rules),
+    assets: normalizeAssets(campaign.assets),
+    platforms: ensureList(campaign.platforms, ['TikTok', 'IG', 'YT']),
   }
+  heroImagePreview.value = campaign.image || ''
 
   loading.value = false
 })
@@ -173,6 +272,16 @@ onMounted(async () => {
               <span :class="labelClass">Deadline</span>
               <input v-model="form.deadline_at" type="date" :class="inputClass" />
             </label>
+            <label class="flex min-h-[78px] cursor-pointer items-center justify-between gap-4 rounded-lg border px-4 py-3 transition lg:col-span-3" :class="form.exclusive ? 'border-purple-300/35 bg-purple-500/10' : 'border-white/[.08] bg-black/20 hover:bg-white/[.035]'">
+              <span>
+                <span class="block text-sm font-semibold text-white/80">Campaign Exclusive</span>
+                <span class="mt-1 block text-xs leading-5 text-white/38">Tandai campaign ini sebagai prioritas/exclusive di listing creator.</span>
+              </span>
+              <input v-model="form.exclusive" type="checkbox" class="sr-only" />
+              <span class="relative h-7 w-12 shrink-0 rounded-full border transition" :class="form.exclusive ? 'border-purple-300/40 bg-purple-500/70' : 'border-white/10 bg-white/[.08]'">
+                <span class="absolute left-1 top-1 h-5 w-5 rounded-full shadow-sm transition" :class="form.exclusive ? 'translate-x-5 bg-white' : 'translate-x-0 bg-white/70'"></span>
+              </span>
+            </label>
             <label class="block">
               <span :class="labelClass">Rate per View</span>
               <input v-model.number="form.rate_per_view" required min="0" type="number" :class="numberClass" />
@@ -190,15 +299,112 @@ onMounted(async () => {
 
         <section v-if="currentStep === 2" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
           <h2 class="text-base font-semibold text-white/86">Media & Brief</h2>
-          <div class="mt-5 grid gap-4">
-            <label class="block">
-              <span :class="labelClass">Image URL</span>
-              <input v-model="form.image_url" :class="inputClass" placeholder="https://..." />
-            </label>
-            <label class="block">
-              <span :class="labelClass">Brief</span>
-              <textarea v-model="form.brief" rows="7" class="mt-2 w-full resize-y rounded-lg border border-white/[.08] bg-black/20 px-4 py-3 text-sm leading-6 text-white outline-none transition focus:border-purple-400/55 focus:bg-black/30"></textarea>
-            </label>
+          <div class="mt-5 space-y-5">
+            <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+              <div class="grid gap-4 lg:grid-cols-[280px_1fr]">
+                <div>
+                  <p class="text-xs font-semibold uppercase text-purple-200/80">1. Hero</p>
+                  <h3 class="mt-2 text-sm font-semibold text-white/84">Gambar Utama Campaign</h3>
+                  <p class="mt-1 text-xs leading-5 text-white/38">Gambar ini tampil di card dan header detail campaign.</p>
+                </div>
+                <div class="grid gap-3">
+                  <input accept="image/*" type="file" class="block w-full cursor-pointer rounded-lg border border-white/[.08] bg-black/20 text-sm text-white/60 outline-none file:mr-4 file:h-11 file:border-0 file:bg-white/[.08] file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-white/[.12]" @change="selectHeroImage" />
+                  <div v-if="heroImagePreview" class="overflow-hidden rounded-lg border border-white/[.08] bg-black/20">
+                    <img :src="heroImagePreview" alt="Preview hero campaign" class="h-48 w-full object-cover" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+              <div>
+                <p class="text-xs font-semibold uppercase text-purple-200/80">2. Brief & Rules</p>
+                <h3 class="mt-2 text-sm font-semibold text-white/84">Arahan untuk Creator</h3>
+                <p class="mt-1 text-xs leading-5 text-white/38">Brief untuk gambaran umum, rules untuk aturan wajib yang harus diikuti.</p>
+              </div>
+
+              <div class="mt-4 grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
+                <label class="block">
+                  <span :class="labelClass">Brief Campaign</span>
+                  <textarea v-model="form.brief" rows="12" :class="textareaClass" placeholder="Contoh: Buat video clipping dengan hook cepat, highlight benefit utama produk, visual brand jelas, dan CTA submit yang natural."></textarea>
+                </label>
+
+                <section class="rounded-lg border border-white/[.08] bg-white/[.025] p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[.07] pb-4">
+                  <div>
+                    <h4 class="text-sm font-semibold text-white/80">Rules / Aturan Konten</h4>
+                    <p class="mt-1 text-xs leading-5 text-white/36">Tulis aturan satu per satu supaya mudah dibaca creator.</p>
+                  </div>
+                  <button class="inline-flex h-9 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/68 transition hover:bg-white/[.085] hover:text-white" type="button" @click="addListItem('rules')">
+                    <PlusIcon class="h-4 w-4" />
+                    Tambah
+                  </button>
+                </div>
+                <div class="mt-4 space-y-2">
+                  <div v-for="(_, index) in form.rules" :key="`rules-${index}`" class="flex items-center gap-3 rounded-lg border border-white/[.07] bg-black/20 p-2">
+                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-purple-500/15 text-xs font-semibold text-purple-100">{{ index + 1 }}</span>
+                    <input v-model="form.rules[index]" :class="inputClass" :placeholder="`Aturan ${index + 1}`" />
+                    <button class="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/[.08] bg-white/[.035] text-white/44 transition hover:border-red-300/30 hover:bg-red-500/10 hover:text-red-200" type="button" @click="removeListItem('rules', index)">
+                      <TrashIcon class="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+            </div>
+
+            <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+              <div>
+                <p class="text-xs font-semibold uppercase text-purple-200/80">3. Asset & Platform</p>
+                <h3 class="mt-2 text-sm font-semibold text-white/84">Materi Pendukung</h3>
+                <p class="mt-1 text-xs leading-5 text-white/38">Asset berisi bahan/link download, platform berisi channel tayang.</p>
+              </div>
+
+              <div class="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+                <section class="rounded-lg border border-white/[.08] bg-white/[.025] p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-semibold text-white/80">Asset Kit</h3>
+                    <p class="mt-1 text-xs text-white/36">Isi judul dan link download / YouTube.</p>
+                  </div>
+                  <button class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/[.055] text-white/64 transition hover:bg-white/[.085] hover:text-white" type="button" @click="addAsset">
+                    <PlusIcon class="h-4 w-4" />
+                  </button>
+                </div>
+                <div class="mt-4 space-y-3">
+                  <div v-for="(_, index) in form.assets" :key="`asset-${index}`" class="grid gap-2 rounded-lg border border-white/[.07] bg-white/[.025] p-3">
+                    <div class="flex gap-2">
+                      <input v-model="form.assets[index].title" :class="inputClass" :placeholder="`Judul asset ${index + 1}`" />
+                      <button class="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/[.08] bg-white/[.035] text-white/44 transition hover:border-red-300/30 hover:bg-red-500/10 hover:text-red-200" type="button" @click="removeListItem('assets', index)">
+                        <TrashIcon class="h-4 w-4" />
+                      </button>
+                    </div>
+                    <input v-model="form.assets[index].url" :class="inputClass" placeholder="https://youtube.com/... atau link download asset" />
+                  </div>
+                </div>
+                </section>
+
+                <section class="rounded-lg border border-white/[.08] bg-white/[.025] p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-semibold text-white/80">Platform Tayang</h3>
+                    <p class="mt-1 text-xs text-white/36">Muncul di sidebar Platform.</p>
+                  </div>
+                  <button class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/[.055] text-white/64 transition hover:bg-white/[.085] hover:text-white" type="button" @click="addListItem('platforms')">
+                    <PlusIcon class="h-4 w-4" />
+                  </button>
+                </div>
+                <div class="mt-4 space-y-3">
+                  <div v-for="(_, index) in form.platforms" :key="`platforms-${index}`" class="flex gap-2">
+                    <input v-model="form.platforms[index]" :class="inputClass" :placeholder="`Platform ${index + 1}`" />
+                    <button class="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/[.08] bg-white/[.035] text-white/44 transition hover:border-red-300/30 hover:bg-red-500/10 hover:text-red-200" type="button" @click="removeListItem('platforms', index)">
+                      <TrashIcon class="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                </section>
+              </div>
+            </div>
           </div>
         </section>
       </template>

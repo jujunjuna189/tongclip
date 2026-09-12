@@ -27,8 +27,11 @@ const route = useRoute()
 const store = useClipperStore()
 const collapsed = ref(false)
 const showDashboardMenu = ref(false)
+const showNotifications = ref(false)
 const accounts = computed(() => store.accounts)
 const isBrand = computed(() => store.user?.role === 'brand')
+const notifications = computed(() => store.notifications)
+const unreadNotifications = computed(() => store.unreadNotifications)
 const selectedAccountId = computed({
   get: () => store.selectedAccount?.id,
   set: (id) => id && store.setSelectedAccount(Number(id)),
@@ -72,6 +75,18 @@ const toggleDashboardMenu = () => {
   showDashboardMenu.value = !showDashboardMenu.value
 }
 
+const toggleNotifications = async () => {
+  showNotifications.value = !showNotifications.value
+
+  if (showNotifications.value) {
+    await store.loadNotifications()
+
+    if (store.unreadNotifications > 0) {
+      await store.markNotificationsRead()
+    }
+  }
+}
+
 const nav = [
   { label: 'Dashboard', path: '/dashboard', icon: HomeIcon },
   { label: 'Campaigns', path: '/campaigns', icon: MegaphoneIcon },
@@ -85,6 +100,7 @@ const adminNav = [
   { label: 'Kelola Campaign', path: '/admin/campaigns', icon: MegaphoneIcon },
   { label: 'Review Submission', path: '/admin/submissions', icon: VideoCameraIcon },
   { label: 'Kelola Creator', path: '/admin/creators', icon: UsersIcon },
+  { label: 'Course Gratis', path: '/admin/courses', icon: TrophyIcon },
   { label: 'Payout', path: '/admin/payouts', icon: WalletIcon },
 ]
 
@@ -99,6 +115,10 @@ onMounted(() => {
 
   if (!store.accounts.length) {
     store.loadDashboard()
+  }
+
+  if (store.token) {
+    store.loadNotifications()
   }
 })
 </script>
@@ -215,11 +235,17 @@ onMounted(() => {
       </div>
     </aside>
 
-    <section class="min-h-screen transition-[padding] duration-300 ease-out" :class="collapsed ? 'lg:pl-[88px]' : 'lg:pl-[252px]'">
-      <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-white/10 bg-[#0B0B0D]/90 px-5 backdrop-blur md:px-7">
-        <div class="text-[15px] font-medium text-white/82">{{ title }}</div>
-        <div class="flex items-center gap-4">
-          <div v-if="accounts.length" class="relative hidden md:block">
+    <section class="min-h-screen min-w-0 transition-[padding] duration-300 ease-out" :class="collapsed ? 'lg:pl-[88px]' : 'lg:pl-[252px]'">
+      <header class="sticky top-0 z-20 border-b border-white/10 bg-[#0B0B0D]/90 backdrop-blur">
+        <div class="flex h-16 min-w-0 items-center justify-between gap-3 px-4 md:px-7">
+          <div class="min-w-0">
+            <div class="truncate text-[15px] font-medium text-white/82">{{ title }}</div>
+            <div v-if="store.selectedAccount" class="mt-0.5 truncate text-[11px] font-medium text-white/38 md:hidden">
+              {{ store.selectedAccount.name }} - {{ store.selectedAccount.handle }}
+            </div>
+          </div>
+          <div class="flex shrink-0 items-center gap-2.5 md:gap-4">
+            <div v-if="accounts.length" class="relative hidden md:block">
             <button 
               type="button" 
               class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -256,21 +282,38 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <RouterLink to="/announcement" class="relative grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm text-white/70">
-            <BellIcon class="h-5 w-5 stroke-[1.8]" />
-            <span class="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand text-[10px] font-black">1</span>
-          </RouterLink>
-          <div v-if="store.selectedAccount" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80">
+          <div class="relative">
+            <button class="relative grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm text-white/70 transition hover:border-purple-400/40 hover:text-white" type="button" aria-label="Buka notifikasi" @click="toggleNotifications">
+              <BellIcon class="h-5 w-5 stroke-[1.8]" />
+              <span v-if="unreadNotifications" class="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand px-1 text-[10px] font-black">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
+            </button>
+
+            <div v-if="showNotifications" class="absolute right-0 top-12 z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-lg border border-white/10 bg-[#111113] p-2 shadow-[0_18px_42px_rgba(0,0,0,.38)]">
+              <div class="px-3 py-2 text-sm font-semibold text-white/86">Notifikasi</div>
+              <div class="max-h-80 overflow-y-auto">
+                <article v-for="notification in notifications" :key="notification.id" class="rounded-md px-3 py-3 transition hover:bg-white/[.045]">
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-sm font-semibold text-white/86">{{ notification.title }}</h3>
+                    <span v-if="!notification.read_at" class="mt-1 h-2 w-2 shrink-0 rounded-full bg-purple-300"></span>
+                  </div>
+                  <p v-if="notification.body" class="mt-1 text-xs leading-5 text-white/45">{{ notification.body }}</p>
+                  <p class="mt-1 text-[11px] text-white/30">{{ notification.created_at }}</p>
+                </article>
+                <div v-if="!notifications.length" class="px-3 py-6 text-sm text-white/38">Belum ada notifikasi.</div>
+              </div>
+            </div>
+          </div>
+          <RouterLink v-if="store.selectedAccount" to="/profile" class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
             <template v-if="store.selectedAccount.avatar_url">
               <img :src="store.selectedAccount.avatar_url" alt="Avatar" class="h-full w-full rounded-lg object-cover" />
             </template>
             <template v-else>
               {{ store.selectedAccount.name.charAt(0).toUpperCase() }}
             </template>
-          </div>
-          <div v-else-if="store.user" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80">
+          </RouterLink>
+          <RouterLink v-else-if="store.user" to="/profile" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
             {{ store.user.name.charAt(0).toUpperCase() }}
-          </div>
+          </RouterLink>
           <div v-if="isBrand" class="relative">
             <button
               class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-white/70 transition hover:border-purple-400/40 hover:text-white"
@@ -303,12 +346,70 @@ onMounted(() => {
               </RouterLink>
             </div>
           </div>
+          </div>
+        </div>
+
+        <div v-if="accounts.length" class="border-t border-white/10 px-4 py-3 md:hidden">
+          <div class="relative">
+            <button
+              type="button"
+              class="flex h-10 w-full min-w-0 items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="isDropdownDisabled"
+              @click="toggleCreatorDropdown"
+            >
+              <span class="truncate">
+                {{ store.selectedAccount ? `${store.selectedAccount.name} - ${store.selectedAccount.handle} ${store.selectedAccount.type === 'user' ? '(User)' : `(${store.selectedAccount.platform || 'Brand'})`}` : 'Pilih Akun' }}
+              </span>
+              <ChevronDownIcon v-if="!isDropdownDisabled" class="ml-2 h-4 w-4 shrink-0 text-white/58" />
+            </button>
+
+            <div
+              v-if="showCreatorDropdown"
+              class="absolute left-0 right-0 top-12 z-30 max-h-64 overflow-y-auto rounded-lg border border-white/10 bg-[#111113] p-1.5 shadow-[0_18px_42px_rgba(0,0,0,.38)]"
+            >
+              <button
+                v-for="account in accounts"
+                :key="account.id"
+                class="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left text-xs font-medium text-white/78 transition hover:bg-white/[.065] hover:text-white"
+                @click="selectAccount(account.id)"
+              >
+                <span class="min-w-0 truncate">{{ account.name }} - {{ account.handle }} {{ account.type === 'user' ? '(User)' : `(${account.platform || 'Brand'})` }}</span>
+                <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 shrink-0 text-purple-400" />
+              </button>
+
+              <div v-if="hasOwnerAccess" class="mt-1 border-t border-white/10 pt-1">
+                <RouterLink
+                  to="/admin/creators/invite"
+                  class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"
+                  @click="showCreatorDropdown = false"
+                >
+                  <PlusIcon class="h-4 w-4 shrink-0" />
+                  <span class="truncate">Tambah Creator Baru</span>
+                </RouterLink>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div class="px-5 py-6 md:px-7">
+      <div class="min-w-0 px-4 pb-28 pt-5 md:px-7 md:pb-6 md:pt-6">
         <slot />
       </div>
     </section>
+
+    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#09090B]/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_42px_rgba(0,0,0,.38)] backdrop-blur lg:hidden">
+      <div class="mx-auto grid max-w-md grid-cols-5 gap-1">
+        <RouterLink
+          v-for="item in activeNav"
+          :key="item.path"
+          :to="item.path"
+          class="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold leading-none transition"
+          :class="route.path === item.path || route.path.startsWith(item.path + '/') ? 'bg-white/[.09] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)]' : 'text-white/45 active:bg-white/[.055] active:text-white/86'"
+        >
+          <component :is="item.icon" class="h-5 w-5 shrink-0 stroke-[1.8]" />
+          <span class="w-full truncate text-center">{{ item.label }}</span>
+        </RouterLink>
+      </div>
+    </nav>
   </main>
 </template>

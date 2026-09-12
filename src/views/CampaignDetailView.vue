@@ -36,7 +36,19 @@ const fallbackCampaign = {
 const campaign = computed(() => store.campaigns.find(item => item.slug === route.params.slug) || store.campaigns[0] || fallbackCampaign)
 const activeTab = ref('Brief')
 const tabs = ['Brief', 'Rules', 'Assets', 'Submission']
-const rules = ['Durasi video minimal 15 detik', 'Hook wajib muncul di 3 detik pertama', 'Tidak boleh mengubah klaim utama brand', 'Caption menyertakan hashtag campaign']
+const campaignRules = computed(() => campaign.value.rules?.length
+  ? campaign.value.rules
+  : ['Durasi video minimal 15 detik', 'Hook wajib muncul di 3 detik pertama', 'Tidak boleh mengubah klaim utama brand', 'Caption menyertakan hashtag campaign'])
+const campaignAssets = computed(() => (campaign.value.assets || []).map((asset) => {
+  if (typeof asset === 'string') {
+    return { title: asset, url: '' }
+  }
+
+  return {
+    title: asset.title || asset.url || 'Asset campaign',
+    url: asset.url || '',
+  }
+}))
 const statusLabel = computed(() => {
   if (campaign.value.submission_status === 'review') return 'Review'
   if (campaign.value.joined) return 'Joined'
@@ -158,7 +170,7 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
             <div v-else-if="activeTab === 'Rules'" class="pt-5">
               <h2 class="text-xl font-semibold tracking-[-.015em]">Aturan Konten</h2>
               <div class="mt-4 space-y-3">
-                <div v-for="rule in rules" :key="rule" class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm text-white/62">
+                <div v-for="rule in campaignRules" :key="rule" class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm text-white/62">
                   <CheckCircleIcon class="h-5 w-5 shrink-0 text-purple-300" />
                   {{ rule }}
                 </div>
@@ -168,10 +180,13 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
             <div v-else-if="activeTab === 'Assets'" class="pt-5">
               <h2 class="text-xl font-semibold tracking-[-.015em]">Asset Kit</h2>
               <div class="mt-4 grid gap-3 md:grid-cols-3">
-                <button v-for="asset in campaign.assets || []" :key="asset" class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm font-medium text-white/70">
-                  {{ asset }}
+                <a v-for="asset in campaignAssets" :key="`${asset.title}-${asset.url}`" :href="asset.url || undefined" :target="asset.url ? '_blank' : undefined" rel="noreferrer" class="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm font-medium text-white/70 transition hover:bg-white/[.045] hover:text-white">
+                  <span class="min-w-0">
+                    <span class="block truncate">{{ asset.title }}</span>
+                    <span v-if="asset.url" class="mt-1 block truncate text-xs text-white/36">{{ asset.url }}</span>
+                  </span>
                   <CloudArrowDownIcon class="h-5 w-5 text-purple-300" />
-                </button>
+                </a>
               </div>
             </div>
 
