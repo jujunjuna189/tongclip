@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Bars3Icon, ExclamationTriangleIcon, MagnifyingGlassIcon, PlusIcon, Squares2X2Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { Bars3Icon, ExclamationTriangleIcon, MagnifyingGlassIcon, PhotoIcon, PlusIcon, Squares2X2Icon, XMarkIcon } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
@@ -13,6 +13,16 @@ const campaigns = computed(() => {
   const keyword = query.value.toLowerCase()
   return store.adminCampaigns.filter((campaign) => `${campaign.title} ${campaign.brand} ${campaign.category} ${campaign.type}`.toLowerCase().includes(keyword))
 })
+
+const deadlineProgress = (campaign) => {
+  if (!campaign.deadline_value) return 100
+
+  const now = new Date()
+  const deadline = new Date(`${campaign.deadline_value}T23:59:59`)
+  const remainingDays = Math.ceil((deadline.getTime() - now.getTime()) / 86400000)
+
+  return Math.max(8, Math.min(100, remainingDays * 4))
+}
 
 const openDeleteModal = (campaign) => {
   campaignToDelete.value = campaign
@@ -69,32 +79,51 @@ onMounted(() => store.loadAdminCampaigns())
       </div>
 
       <section v-if="viewMode === 'card'" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <article v-for="campaign in campaigns" :key="campaign.slug" class="dark-card rounded-lg p-5">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-base font-semibold text-white/88">{{ campaign.title }}</h2>
-              <p class="mt-1 text-xs text-white/38">{{ campaign.brand }}</p>
+        <article v-for="campaign in campaigns" :key="campaign.slug" class="dark-card overflow-hidden rounded-lg transition hover:-translate-y-0.5 hover:border-purple-500/40">
+          <div class="relative h-56 overflow-hidden bg-black/30">
+            <div v-if="campaign.image" class="absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }"></div>
+            <div v-else class="absolute inset-0 grid place-items-center bg-white/[.035] text-white/26">
+              <PhotoIcon class="h-14 w-14 stroke-[1.4]" />
             </div>
-            <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-[11px] font-medium text-emerald-100/82">{{ campaign.status || 'Active' }}</span>
-          </div>
-          <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
-            <div class="rounded-lg bg-white/[.035] p-3">
-              <div class="text-xs text-white/34">Rate</div>
-              <div class="mt-1 font-semibold text-gradient-primary">{{ campaign.rate }}</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent"></div>
+            <span class="absolute left-3 top-3 rounded-full border border-purple-300/30 bg-black/60 px-3 py-1.5 text-xs font-semibold text-purple-100">
+              {{ campaign.status || 'Active' }}
+            </span>
+            <span
+              v-if="campaign.exclusive"
+              class="absolute right-0 top-0 rounded-bl-2xl border border-purple-300/60 bg-black/60 px-4 py-2.5 text-xs font-medium text-purple-100"
+            >
+              Exclusive Campaign
+            </span>
+            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 text-xs text-white/82">
+              <span class="truncate">{{ campaign.brand || 'Tanpa brand' }}</span>
+              <span class="shrink-0 rounded-full bg-white/10 px-3 py-1.5">{{ campaign.type || 'Campaign' }}</span>
             </div>
-            <div class="rounded-lg bg-white/[.035] p-3">
-              <div class="text-xs text-white/34">Budget</div>
-              <div class="mt-1 font-semibold text-white/78">{{ campaign.budget }}%</div>
+          </div>
+
+          <div class="p-5">
+            <h2 class="min-h-12 text-[17px] font-semibold leading-6 tracking-[-.015em] text-white/90">{{ campaign.title }}</h2>
+            <div class="mt-1 text-[26px] font-semibold tracking-[-.03em] text-gradient-primary">
+              {{ campaign.rate }} <span class="text-sm font-normal text-white/50">/ 1K Views</span>
             </div>
-          </div>
-          <div class="mt-4 flex flex-wrap gap-2 text-[11px] text-white/56">
-            <span class="rounded-full bg-white/[.045] px-3 py-1">{{ campaign.category }}</span>
-            <span class="rounded-full bg-white/[.045] px-3 py-1">{{ campaign.type }}</span>
-            <span class="rounded-full bg-white/[.045] px-3 py-1">{{ campaign.deadline || '-' }}</span>
-          </div>
-          <div class="mt-5 flex gap-2">
-            <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-9 items-center rounded-lg bg-white/[.055] px-4 text-xs font-semibold text-white/72 hover:bg-white/[.085]">Edit</RouterLink>
-            <button class="h-9 rounded-lg bg-red-400/10 px-4 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">Hapus</button>
+
+            <div class="mt-5 flex items-center justify-between text-xs text-white/58">
+              <span>Deadline</span>
+              <span>{{ campaign.deadline || '-' }}</span>
+            </div>
+            <div class="mt-2.5 h-1 rounded-full bg-white/10">
+              <div class="blue-progress h-full rounded-full" :style="{ width: deadlineProgress(campaign) + '%' }"></div>
+            </div>
+
+            <div class="mt-5 flex flex-wrap gap-2 text-[11px] text-white/56">
+              <span class="rounded-full bg-white/[.045] px-3 py-1">{{ campaign.category || '-' }}</span>
+              <span class="rounded-full bg-white/[.045] px-3 py-1">Budget {{ campaign.budget }}%</span>
+            </div>
+
+            <div class="mt-5 flex gap-2">
+              <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-9 items-center rounded-lg bg-white/[.055] px-4 text-xs font-semibold text-white/72 hover:bg-white/[.085]">Edit</RouterLink>
+              <button class="h-9 rounded-lg bg-red-400/10 px-4 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">Hapus</button>
+            </div>
           </div>
         </article>
       </section>

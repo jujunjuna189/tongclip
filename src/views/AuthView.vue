@@ -20,7 +20,7 @@ const login = async () => {
 
   try {
     await store.login(identifier.value, password.value)
-    router.push('/dashboard')
+    router.push(store.user?.role === 'brand' ? '/admin/dashboard' : '/dashboard')
   } catch (exception) {
     error.value = axios.isAxiosError(exception)
       ? exception.response?.data?.message || exception.response?.data?.errors?.identifier?.[0] || 'Login gagal. Cek email dan password.'

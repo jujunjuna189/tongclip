@@ -37,7 +37,7 @@ onMounted(() => {
     <div class="mx-auto max-w-[1360px]">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Dashboard Admin</h1>
+          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Selamat datang, {{ store.user?.name || 'Admin' }}</h1>
           <p class="mt-2 text-sm text-white/45">Pantau creator, campaign, submission, dan payout dari satu tempat.</p>
         </div>
       </div>

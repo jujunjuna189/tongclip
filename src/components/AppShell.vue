@@ -112,7 +112,7 @@ const nav = [
 ]
 
 const adminNav = [
-  { label: 'Dashboard Admin', path: '/admin/dashboard', icon: ChartBarIcon },
+  { label: 'Dashboard', path: '/admin/dashboard', icon: ChartBarIcon },
   { label: 'Kelola Campaign', path: '/admin/campaigns', icon: MegaphoneIcon },
   { label: 'Review Submission', path: '/admin/submissions', icon: VideoCameraIcon },
   { label: 'Kelola Creator', path: '/admin/creators', icon: UsersIcon },
@@ -294,14 +294,14 @@ onBeforeUnmount(() => {
                 <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 text-purple-400" />
               </button>
               
-              <div v-if="hasOwnerAccess" class="mt-1 border-t border-white/10 pt-1">
+              <div v-if="hasOwnerAccess && !isBrand" class="mt-1 border-t border-white/10 pt-1">
                 <RouterLink 
-                  to="/admin/creators/invite" 
+                  to="/social-accounts/create" 
                   class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"
                   @click="showCreatorDropdown = false"
                 >
                   <PlusIcon class="h-4 w-4" />
-                  Tambah Creator Baru
+                  Tambah Creator
                 </RouterLink>
               </div>
             </div>
@@ -338,7 +338,7 @@ onBeforeUnmount(() => {
           <RouterLink v-else-if="store.user" to="/profile" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
             {{ store.user.name.charAt(0).toUpperCase() }}
           </RouterLink>
-          <div v-if="isBrand" class="relative">
+          <div v-if="false && isBrand" class="relative">
             <button
               class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-white/70 transition hover:border-purple-400/40 hover:text-white"
               type="button"
@@ -366,7 +366,7 @@ onBeforeUnmount(() => {
                 @click="showDashboardMenu = false"
               >
                 <ChartBarIcon class="h-5 w-5 stroke-[1.8] text-purple-300" />
-                Dashboard Admin
+                Dashboard
               </RouterLink>
             </div>
           </div>
@@ -401,14 +401,14 @@ onBeforeUnmount(() => {
                 <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 shrink-0 text-purple-400" />
               </button>
 
-              <div v-if="hasOwnerAccess" class="mt-1 border-t border-white/10 pt-1">
+              <div v-if="hasOwnerAccess && !isBrand" class="mt-1 border-t border-white/10 pt-1">
                 <RouterLink
-                  to="/admin/creators/invite"
+                  to="/social-accounts/create"
                   class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"
                   @click="showCreatorDropdown = false"
                 >
                   <PlusIcon class="h-4 w-4 shrink-0" />
-                  <span class="truncate">Tambah Creator Baru</span>
+                  <span class="truncate">Tambah Creator</span>
                 </RouterLink>
               </div>
             </div>

@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, EyeIcon, EyeSlashIcon, PhotoIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
@@ -9,8 +9,11 @@ const router = useRouter()
 const store = useClipperStore()
 const saving = ref(false)
 const currentStep = ref(0)
+const avatarFile = ref(null)
+const avatarPreview = ref('')
+const showPassword = ref(false)
 const steps = [
-  { title: 'Profil', description: 'Nama dan handle' },
+  { title: 'Profil', description: 'Nama dan avatar' },
   { title: 'Akses', description: 'Login dan status' },
   { title: 'Bank', description: 'Data payout' },
 ]
@@ -30,17 +33,46 @@ const selectClass = 'form-control form-select'
 const labelClass = 'text-xs font-medium text-white/44'
 const isFirstStep = computed(() => currentStep.value === 0)
 const isLastStep = computed(() => currentStep.value === steps.length - 1)
+const handleEdited = ref(false)
 const canContinue = computed(() => {
   if (currentStep.value === 0) {
-    return Boolean(form.value.name.trim() && form.value.handle.trim())
+    return Boolean(form.value.name.trim())
   }
 
   if (currentStep.value === 1) {
-    return Boolean(form.value.email.trim() && form.value.password.length >= 8 && form.value.status)
+    return Boolean(form.value.email.trim() && form.value.handle.trim() && form.value.password.length >= 8 && form.value.status)
   }
 
   return true
 })
+
+const handleFromEmail = (email) => {
+  const localPart = String(email || '').split('@')[0] || ''
+  const handle = localPart
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '.')
+    .replace(/^[._-]+|[._-]+$/g, '')
+
+  return handle ? `@${handle}` : ''
+}
+
+watch(() => form.value.email, (email) => {
+  if (handleEdited.value) return
+  form.value.handle = handleFromEmail(email)
+})
+
+const markHandleEdited = () => {
+  handleEdited.value = true
+}
+
+const chooseAvatar = (event) => {
+  const file = event.target.files?.[0]
+
+  if (!file) return
+
+  avatarFile.value = file
+  avatarPreview.value = URL.createObjectURL(file)
+}
 
 const nextStep = () => {
   if (!canContinue.value || isLastStep.value) return
@@ -56,12 +88,21 @@ const createCreator = async () => {
   saving.value = true
 
   try {
-    await store.createAdminCreator({
-      ...form.value,
-      bank_name: form.value.bank_name || undefined,
-      bank_account_number: form.value.bank_account_number || undefined,
-      bank_account_name: form.value.bank_account_name || undefined,
-    })
+    const payload = new FormData()
+    payload.append('name', form.value.name)
+    payload.append('email', form.value.email)
+    payload.append('handle', form.value.handle)
+    payload.append('password', form.value.password)
+    payload.append('status', form.value.status)
+    payload.append('bank_name', form.value.bank_name)
+    payload.append('bank_account_number', form.value.bank_account_number)
+    payload.append('bank_account_name', form.value.bank_account_name)
+
+    if (avatarFile.value) {
+      payload.append('avatar', avatarFile.value)
+    }
+
+    await store.createAdminCreator(payload)
     router.push('/admin/creators')
   } finally {
     saving.value = false
@@ -109,8 +150,22 @@ const createCreator = async () => {
             <input v-model="form.name" required :class="inputClass" placeholder="Contoh: Dinda Putri" />
           </label>
           <label class="block">
-            <span :class="labelClass">Handle</span>
-            <input v-model="form.handle" required :class="inputClass" placeholder="@dindaputri" />
+            <span :class="labelClass">Avatar</span>
+            <span class="mt-2 flex min-h-28 cursor-pointer flex-col gap-4 rounded-lg border border-dashed border-white/[.12] bg-black/20 p-4 transition hover:border-purple-300/35 hover:bg-white/[.035] sm:flex-row sm:items-center">
+              <span class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg bg-white/[.055] text-white/44">
+                <img v-if="avatarPreview" :src="avatarPreview" alt="" class="h-full w-full object-cover" />
+                <PhotoIcon v-else class="h-8 w-8" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold text-white/78">Upload avatar</span>
+                <span class="mt-1 block text-xs leading-5 text-white/38">Pilih file gambar untuk foto creator.</span>
+              </span>
+              <span class="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 text-xs font-semibold text-white shadow-blue sm:self-center">
+                <PlusIcon class="h-4 w-4" />
+                Pilih Foto
+              </span>
+              <input class="sr-only" type="file" accept="image/*" @change="chooseAvatar" />
+            </span>
           </label>
         </div>
       </section>
@@ -123,8 +178,29 @@ const createCreator = async () => {
             <input v-model="form.email" required type="email" :class="inputClass" placeholder="creator@example.com" />
           </label>
           <label class="block">
+            <span :class="labelClass">Handle</span>
+            <input v-model="form.handle" required :class="inputClass" placeholder="@creator" @input="markHandleEdited" />
+          </label>
+          <label class="block">
             <span :class="labelClass">Password Awal</span>
-            <input v-model="form.password" required minlength="8" type="password" :class="inputClass" />
+            <span class="relative block">
+              <input
+                v-model="form.password"
+                required
+                minlength="8"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-control pr-12"
+              />
+              <button
+                class="absolute right-3 top-[32px] grid h-8 w-8 -translate-y-1/2 place-items-center text-white/50 transition hover:text-white"
+                type="button"
+                :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                @click="showPassword = !showPassword"
+              >
+                <EyeSlashIcon v-if="showPassword" class="h-5 w-5 stroke-[1.8]" />
+                <EyeIcon v-else class="h-5 w-5 stroke-[1.8]" />
+              </button>
+            </span>
           </label>
           <label class="block">
             <span :class="labelClass">Status</span>
@@ -138,7 +214,10 @@ const createCreator = async () => {
       </section>
 
       <section v-if="currentStep === 2" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
-        <h2 class="text-base font-semibold text-white/86">Data Bank</h2>
+        <div class="flex items-center gap-3">
+          <h2 class="text-base font-semibold text-white/86">Data Bank</h2>
+          <span class="rounded-full border border-purple-300/25 bg-purple-500/10 px-2.5 py-1 text-[11px] font-semibold text-purple-100/82">Optional</span>
+        </div>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
           <label class="block">
             <span :class="labelClass">Bank</span>

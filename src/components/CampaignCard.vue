@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { PhotoIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   campaign: Object,
@@ -26,7 +27,11 @@ const deadlineProgress = computed(() => {
     class="dark-card block overflow-hidden rounded-lg transition hover:-translate-y-0.5"
     :class="accent === 'orange' ? 'hover:border-orange-500/40' : 'hover:border-purple-500/40'"
   >
-    <div class="relative h-60 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }">
+    <div class="relative h-60 overflow-hidden bg-black/30">
+      <div v-if="campaign.image" class="absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }"></div>
+      <div v-else class="absolute inset-0 grid place-items-center bg-white/[.035] text-white/26">
+        <PhotoIcon class="h-14 w-14 stroke-[1.4]" />
+      </div>
       <div class="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent"></div>
       <span
         v-if="campaign.exclusive"

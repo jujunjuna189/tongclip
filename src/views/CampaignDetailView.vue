@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   CloudArrowDownIcon,
   LinkIcon,
+  PhotoIcon,
   PlayCircleIcon,
   ShareIcon,
 } from '@heroicons/vue/24/outline'
@@ -103,7 +104,11 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
       <section class="mt-5 grid gap-6 xl:grid-cols-[1fr_360px]">
         <div class="space-y-6">
           <div class="dark-card overflow-hidden rounded-lg">
-            <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }">
+            <div class="relative h-[420px] overflow-hidden bg-black/30">
+              <div v-if="campaign.image" class="absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }"></div>
+              <div v-else class="absolute inset-0 grid place-items-center bg-white/[.035] text-white/24">
+                <PhotoIcon class="h-20 w-20 stroke-[1.4]" />
+              </div>
               <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent"></div>
               <div class="absolute left-6 top-6 flex flex-wrap gap-2">
                 <span class="rounded-full border border-purple-300/40 bg-purple-500/15 px-4 py-2 text-xs font-medium text-purple-100">{{ campaign.type }}</span>

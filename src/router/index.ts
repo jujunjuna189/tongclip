@@ -27,6 +27,7 @@ import CourseDetailView from '../views/CourseDetailView.vue'
 import CourseWatchView from '../views/CourseWatchView.vue'
 import ContactAdminView from '../views/ContactAdminView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import SocialAccountCreateView from '../views/SocialAccountCreateView.vue'
 import AnnouncementsView from '../views/AnnouncementsView.vue'
 import LogoutView from '../views/LogoutView.vue'
 import TermsOfServiceView from '../views/TermsOfServiceView.vue'
@@ -46,7 +47,7 @@ const router = createRouter({
     { path: '/peninjauan-akun', redirect: '/onboarding' },
     { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { title: 'Dashboard' } },
     { path: '/dashboard-admin', redirect: '/admin/dashboard' },
-    { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboardView, meta: { title: 'Dashboard Admin' } },
+    { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboardView, meta: { title: 'Dashboard' } },
     { path: '/admin/campaigns', name: 'admin-campaigns', component: AdminCampaignsView, meta: { title: 'Kelola Campaign' } },
     { path: '/admin/campaigns/create', name: 'admin-campaign-create', component: AdminCampaignCreateView, meta: { title: 'Tambah Campaign' } },
     { path: '/admin/campaigns/:id/edit', name: 'admin-campaign-edit', component: AdminCampaignEditView, meta: { title: 'Edit Campaign' } },
@@ -70,6 +71,7 @@ const router = createRouter({
     { path: '/course-gratis/:id/watch', name: 'course-watch', component: CourseWatchView, meta: { title: 'Putar Course' } },
     { path: '/hubungi-admin', name: 'contact', component: ContactAdminView, meta: { title: 'Hubungi Admin' } },
     { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Profile' } },
+    { path: '/social-accounts/create', name: 'social-account-create', component: SocialAccountCreateView, meta: { title: 'Tambah Creator' } },
     { path: '/announcement', name: 'announcements', component: AnnouncementsView, meta: { title: 'FAQ & Peraturan' } },
     { path: '/logout', name: 'logout', component: LogoutView, meta: { title: 'Logout' } },
   ],

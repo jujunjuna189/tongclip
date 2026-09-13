@@ -525,6 +525,20 @@ export const useClipperStore = defineStore('clipper', {
       await this.loadIncomes()
       return data
     },
+    async createSocialAccount(payload: {
+      name: string
+      email?: string
+      handle: string
+      platform: string
+      avatar_url?: string
+      bank_name?: string
+      bank_account_number?: string
+      bank_account_name?: string
+    }) {
+      const { data } = await api.post('/social-accounts', payload)
+      await this.loadDashboard()
+      return data
+    },
     async contactAdmin(payload: { subject: string; message: string }) {
       const { data } = await api.post('/contact-admin', payload)
       await this.loadTickets()
@@ -583,12 +597,17 @@ export const useClipperStore = defineStore('clipper', {
       const { data } = await api.get('/admin/courses')
       this.courses = data
     },
-    async createAdminCourse(payload: CoursePayload) {
+    async createAdminCourse(payload: CoursePayload | FormData) {
       await api.post('/admin/courses', payload)
       await this.loadAdminCourses()
     },
-    async updateAdminCourse(id: number, payload: Partial<CoursePayload>) {
-      await api.patch(`/admin/courses/${id}`, payload)
+    async updateAdminCourse(id: number, payload: Partial<CoursePayload> | FormData) {
+      if (payload instanceof FormData) {
+        payload.append('_method', 'PATCH')
+        await api.post(`/admin/courses/${id}`, payload)
+      } else {
+        await api.patch(`/admin/courses/${id}`, payload)
+      }
       await this.loadAdminCourses()
     },
     async deleteAdminCourse(id: number) {
@@ -657,10 +676,11 @@ export const useClipperStore = defineStore('clipper', {
       await api.patch(`/admin/creators/${id}`, payload)
       await this.loadAdminCreators()
     },
-    async createAdminCreator(payload: {
+    async createAdminCreator(payload: FormData | {
       name: string
       email: string
       handle: string
+      avatar_url?: string
       password: string
       status: string
       bank_name?: string
