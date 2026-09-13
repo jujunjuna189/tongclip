@@ -52,17 +52,20 @@ onMounted(() => store.loadAdminCampaigns())
 <template>
   <AppShell>
     <div class="mx-auto max-w-[1360px]">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Kelola Campaign</h1>
-          <p class="mt-2 text-sm text-white/45">Pantau status campaign, budget, deadline, dan tipe konten.</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="grid h-10 grid-cols-2 rounded-lg border border-white/10 bg-white/[.035] p-1">
-            <button class="grid w-9 place-items-center rounded-md transition" :class="viewMode === 'card' ? 'bg-white/10 text-white' : 'text-white/42 hover:text-white/78'" type="button" @click="viewMode = 'card'" aria-label="Card view">
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="flex h-10 w-full min-w-0 items-center gap-3 rounded-lg border border-white/10 bg-white/[.035] px-3.5 md:w-[360px] xl:w-[420px]">
+          <MagnifyingGlassIcon class="h-4 w-4 shrink-0 text-white/42" />
+          <input v-model="query" class="h-full min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35" placeholder="Cari campaign..." />
+          <button v-if="query" class="grid h-7 w-7 shrink-0 place-items-center rounded-md text-white/38 transition hover:bg-white/[.055] hover:text-white" type="button" aria-label="Hapus pencarian" @click="query = ''">
+            <XMarkIcon class="h-4 w-4" />
+          </button>
+        </label>
+        <div class="ml-auto flex items-center gap-3">
+          <div class="grid h-10 w-[82px] grid-cols-2 rounded-lg border border-white/10 bg-white/[.035] p-1">
+            <button class="grid w-9 place-items-center rounded-md transition" :class="viewMode === 'card' ? 'bg-white/10 text-white' : 'text-white/42 hover:text-white/78'" type="button" aria-label="Card view" @click="viewMode = 'card'">
               <Squares2X2Icon class="h-4 w-4" />
             </button>
-            <button class="grid w-9 place-items-center rounded-md transition" :class="viewMode === 'list' ? 'bg-white/10 text-white' : 'text-white/42 hover:text-white/78'" type="button" @click="viewMode = 'list'" aria-label="List view">
+            <button class="grid w-9 place-items-center rounded-md transition" :class="viewMode === 'list' ? 'bg-white/10 text-white' : 'text-white/42 hover:text-white/78'" type="button" aria-label="List view" @click="viewMode = 'list'">
               <Bars3Icon class="h-4 w-4" />
             </button>
           </div>
@@ -73,12 +76,10 @@ onMounted(() => store.loadAdminCampaigns())
         </div>
       </div>
 
-      <div class="mt-6 flex h-11 max-w-md items-center gap-3 rounded-lg border border-white/10 bg-white/[.045] px-4">
-        <MagnifyingGlassIcon class="h-4 w-4 text-white/42" />
-        <input v-model="query" class="h-full flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35" placeholder="Cari campaign..." />
-      </div>
-
       <section v-if="viewMode === 'card'" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div v-if="!campaigns.length" class="col-span-full grid h-40 place-items-center rounded-lg border border-dashed border-white/[.1] bg-black/20 text-sm text-white/38">
+          {{ query ? 'Campaign tidak ditemukan.' : 'Belum ada campaign.' }}
+        </div>
         <article v-for="campaign in campaigns" :key="campaign.slug" class="dark-card overflow-hidden rounded-lg transition hover:-translate-y-0.5 hover:border-purple-500/40">
           <div class="relative h-56 overflow-hidden bg-black/30">
             <div v-if="campaign.image" class="absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: `url(${campaign.image})` }"></div>
@@ -150,6 +151,11 @@ onMounted(() => store.loadAdminCampaigns())
               </tr>
             </thead>
             <tbody>
+              <tr v-if="!campaigns.length">
+                <td colspan="8" class="rounded-lg border border-dashed border-white/[.1] bg-black/20 px-4 py-12 text-center text-sm text-white/38">
+                  {{ query ? 'Campaign tidak ditemukan.' : 'Belum ada campaign.' }}
+                </td>
+              </tr>
               <tr v-for="campaign in campaigns" :key="campaign.slug" class="group text-white/68">
                 <td class="rounded-l-lg border-y border-l border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <div class="text-sm font-semibold text-white/86">{{ campaign.title }}</div>
