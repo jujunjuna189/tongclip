@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   AcademicCapIcon,
   ArrowRightOnRectangleIcon,
@@ -24,6 +24,7 @@ import { useClipperStore } from '../stores/clipper'
 import LogoMark from './LogoMark.vue'
 
 const route = useRoute()
+const router = useRouter()
 const store = useClipperStore()
 const collapsed = ref(false)
 const showDashboardMenu = ref(false)
@@ -49,22 +50,17 @@ const selectAccount = (id) => {
 }
 
 const isDropdownDisabled = computed(() => {
-  const acc = store.selectedAccount
-  const user = store.user
-  
-  if (acc && (acc.access_type === 'member' || acc.role === 'member')) {
-    return true
-  }
-  
-  if (user && (user.access_type === 'member' || user.role === 'member')) {
-    return true
-  }
-  
-  return false
+  return Boolean(store.loginSocialAccountId || store.user?.login_social_account_id)
 })
 
 const hasOwnerAccess = computed(() => {
   return store.accounts.some((acc) => acc.access_type === 'owner') || store.user?.role === 'brand'
+})
+const showCreatorSwitcher = computed(() => !isAdminArea.value && !isBrand.value)
+const canAddCreator = computed(() => {
+  if (isBrand.value || isDropdownDisabled.value) return false
+
+  return hasOwnerAccess.value || !accounts.value.length || store.user?.role === 'creator'
 })
 
 const toggleSidebar = () => {
@@ -80,11 +76,23 @@ const toggleNotifications = async () => {
 
   if (showNotifications.value) {
     await store.loadNotifications()
-
-    if (store.unreadNotifications > 0) {
-      await store.markNotificationsRead()
-    }
   }
+}
+
+const notificationPath = (notification) => {
+  if (notification.type === 'submission_review') return '/admin/submissions'
+  if (notification.type === 'withdrawal_request') return '/admin/payouts'
+  if (notification.type === 'support_ticket') return '/admin/tickets'
+  if (notification.type?.startsWith('brand_join')) return '/onboarding'
+  if (notification.type === 'brand_join_request') return '/admin/creators'
+
+  return isAdminArea.value ? '/admin/dashboard' : '/dashboard'
+}
+
+const openNotification = async (notification) => {
+  await store.markNotificationRead(notification.id)
+  showNotifications.value = false
+  await router.push(notificationPath(notification))
 }
 
 const handleOutsidePointerDown = (event) => {
@@ -124,6 +132,7 @@ const adminNav = [
 const isAdminArea = computed(() => route.path.startsWith('/admin'))
 const activeNav = computed(() => isAdminArea.value ? adminNav : nav)
 const title = computed(() => route.meta?.title || activeNav.value.find(item => item.path === route.path)?.label || (isAdminArea.value ? 'Admin Area' : 'Member Area'))
+const profilePath = computed(() => isAdminArea.value ? '/admin/profile' : '/profile')
 
 onMounted(() => {
   document.addEventListener('pointerdown', handleOutsidePointerDown)
@@ -269,7 +278,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <div class="flex shrink-0 items-center gap-2.5 md:gap-4">
-            <div v-if="accounts.length" class="relative hidden md:block" data-popup="creator-account">
+            <div v-if="showCreatorSwitcher" class="relative hidden md:block" data-popup="creator-account">
             <button 
               type="button" 
               class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -294,7 +303,7 @@ onBeforeUnmount(() => {
                 <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 text-purple-400" />
               </button>
               
-              <div v-if="hasOwnerAccess && !isBrand" class="mt-1 border-t border-white/10 pt-1">
+              <div v-if="canAddCreator" class="mt-1 border-t border-white/10 pt-1">
                 <RouterLink 
                   to="/social-accounts/create" 
                   class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"
@@ -315,19 +324,19 @@ onBeforeUnmount(() => {
             <div v-if="showNotifications" class="absolute right-0 top-12 z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-lg border border-white/10 bg-[#111113] p-2 shadow-[0_18px_42px_rgba(0,0,0,.38)]">
               <div class="px-3 py-2 text-sm font-semibold text-white/86">Notifikasi</div>
               <div class="max-h-80 overflow-y-auto">
-                <article v-for="notification in notifications" :key="notification.id" class="rounded-md px-3 py-3 transition hover:bg-white/[.045]">
+                <button v-for="notification in notifications" :key="notification.id" class="block w-full rounded-md px-3 py-3 text-left transition hover:bg-white/[.045]" type="button" @click="openNotification(notification)">
                   <div class="flex items-start justify-between gap-3">
                     <h3 class="text-sm font-semibold text-white/86">{{ notification.title }}</h3>
                     <span v-if="!notification.read_at" class="mt-1 h-2 w-2 shrink-0 rounded-full bg-purple-300"></span>
                   </div>
                   <p v-if="notification.body" class="mt-1 text-xs leading-5 text-white/45">{{ notification.body }}</p>
                   <p class="mt-1 text-[11px] text-white/30">{{ notification.created_at }}</p>
-                </article>
+                </button>
                 <div v-if="!notifications.length" class="px-3 py-6 text-sm text-white/38">Belum ada notifikasi.</div>
               </div>
             </div>
           </div>
-          <RouterLink v-if="store.selectedAccount" to="/profile" class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
+          <RouterLink v-if="store.selectedAccount" :to="profilePath" class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
             <template v-if="store.selectedAccount.avatar_url">
               <img :src="store.selectedAccount.avatar_url" alt="Avatar" class="h-full w-full rounded-lg object-cover" />
             </template>
@@ -335,7 +344,7 @@ onBeforeUnmount(() => {
               {{ store.selectedAccount.name.charAt(0).toUpperCase() }}
             </template>
           </RouterLink>
-          <RouterLink v-else-if="store.user" to="/profile" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
+          <RouterLink v-else-if="store.user" :to="profilePath" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm font-black text-white/80 transition hover:border-purple-400/40 hover:text-white" aria-label="Buka profile">
             {{ store.user.name.charAt(0).toUpperCase() }}
           </RouterLink>
           <div v-if="false && isBrand" class="relative">
@@ -373,7 +382,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div v-if="accounts.length" class="border-t border-white/10 px-4 py-3 md:hidden">
+        <div v-if="showCreatorSwitcher" class="border-t border-white/10 px-4 py-3 md:hidden">
           <div class="relative" data-popup="creator-account">
             <button
               type="button"
@@ -401,7 +410,7 @@ onBeforeUnmount(() => {
                 <CheckIcon v-if="selectedAccountId === account.id" class="h-4 w-4 shrink-0 text-purple-400" />
               </button>
 
-              <div v-if="hasOwnerAccess && !isBrand" class="mt-1 border-t border-white/10 pt-1">
+              <div v-if="canAddCreator" class="mt-1 border-t border-white/10 pt-1">
                 <RouterLink
                   to="/social-accounts/create"
                   class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-semibold text-purple-300 transition hover:bg-white/[.065]"

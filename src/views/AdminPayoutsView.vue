@@ -4,8 +4,6 @@ import {
   BanknotesIcon,
   CheckCircleIcon,
   ClockIcon,
-  ExclamationTriangleIcon,
-  TrashIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
@@ -14,13 +12,12 @@ import { useClipperStore } from '../stores/clipper'
 const store = useClipperStore()
 const loading = ref(true)
 const savingId = ref(null)
-const deleting = ref(false)
 const statusFilter = ref('all')
-const payoutToDelete = ref(null)
 
 const requests = computed(() => (store.adminPayouts?.items || []).filter((item) => item.type === 'Withdrawal'))
 const totalIncome = computed(() => store.adminPayouts?.total_income || 'Rp0')
-const totalRequested = computed(() => store.adminPayouts?.total_requested || 'Rp0')
+const totalPaid = computed(() => store.adminPayouts?.total_requested || 'Rp0')
+const totalRemaining = computed(() => store.adminPayouts?.total_remaining || 'Rp0')
 const normalizeStatus = (status) => String(status || 'requested').toLowerCase().replace(/\s+/g, '_')
 
 const filteredRequests = computed(() => requests.value.filter((request) => statusFilter.value === 'all' || normalizeStatus(request.status) === statusFilter.value))
@@ -29,6 +26,7 @@ const stats = computed(() => ({
   requested: requests.value.filter((item) => normalizeStatus(item.status) === 'requested').length,
   approved: requests.value.filter((item) => normalizeStatus(item.status) === 'approved').length,
   rejected: requests.value.filter((item) => normalizeStatus(item.status) === 'rejected').length,
+  paid: requests.value.filter((item) => normalizeStatus(item.status) === 'paid').length,
 }))
 
 const statusOptions = [
@@ -46,6 +44,16 @@ const statusClass = (status) => {
   if (normalized === 'rejected') return 'border-red-300/25 bg-red-400/10 text-red-100'
   return 'border-amber-300/25 bg-amber-400/10 text-amber-100'
 }
+const canReview = (request) => normalizeStatus(request.status) === 'requested'
+const canComplete = (request) => normalizeStatus(request.status) === 'approved'
+const isFinished = (request) => normalizeStatus(request.status) === 'paid'
+const canCancel = (request) => {
+  const status = normalizeStatus(request.status)
+  if (status !== 'approved') return false
+  if (!request.reviewed_at) return true
+
+  return (Date.now() - new Date(request.reviewed_at).getTime()) <= 24 * 60 * 60 * 1000
+}
 
 const updatePayout = async (request, status) => {
   savingId.value = request.id
@@ -54,27 +62,6 @@ const updatePayout = async (request, status) => {
     await store.updateAdminPayout(request.id, { status })
   } finally {
     savingId.value = null
-  }
-}
-
-const openDeleteModal = (request) => {
-  payoutToDelete.value = request
-}
-
-const closeDeleteModal = () => {
-  if (deleting.value) return
-  payoutToDelete.value = null
-}
-
-const confirmDeletePayout = async () => {
-  if (!payoutToDelete.value) return
-  deleting.value = true
-
-  try {
-    await store.deleteAdminPayout(payoutToDelete.value.id)
-    payoutToDelete.value = null
-  } finally {
-    deleting.value = false
   }
 }
 
@@ -95,28 +82,37 @@ onMounted(async () => {
           <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Pengajuan Pencairan</h1>
           <p class="mt-2 text-sm text-white/45">Review permintaan withdraw creator, cek rekening tujuan, lalu setujui atau tolak pengajuan.</p>
         </div>
-        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
             <div class="flex items-center gap-3 text-white/38">
               <BanknotesIcon class="h-5 w-5" />
-              <span class="text-xs font-medium">Saldo Valid</span>
+              <span class="text-xs font-medium">Total Valid</span>
             </div>
-            <div class="mt-3 text-2xl font-semibold text-emerald-200">{{ totalIncome }}</div>
+            <div class="mt-2 text-2xl font-semibold text-emerald-200">{{ totalIncome }}</div>
+            <p class="mt-1 text-[11px] leading-4 text-white/30">Semua income yang sudah valid.</p>
+          </div>
+          <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+            <div class="flex items-center gap-3 text-white/38">
+              <BanknotesIcon class="h-5 w-5" />
+              <span class="text-xs font-medium">Total Tersisa</span>
+            </div>
+            <div class="mt-2 text-2xl font-semibold text-purple-100">{{ totalRemaining }}</div>
+            <p class="mt-1 text-[11px] leading-4 text-white/30">Valid dikurangi withdraw proses.</p>
           </div>
           <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
             <div class="flex items-center gap-3 text-white/38">
               <ClockIcon class="h-5 w-5" />
-              <span class="text-xs font-medium">Total Diajukan</span>
+              <span class="text-xs font-medium">Total Dicairkan</span>
             </div>
-            <div class="mt-3 text-2xl font-semibold text-white/88">{{ totalRequested }}</div>
+            <div class="mt-3 text-2xl font-semibold text-white/88">{{ totalPaid }}</div>
           </div>
           <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
             <div class="text-xs font-medium text-white/38">Menunggu Review</div>
             <div class="mt-3 text-2xl font-semibold text-amber-100">{{ stats.requested }}</div>
           </div>
           <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
-            <div class="text-xs font-medium text-white/38">Total Pengajuan</div>
-            <div class="mt-3 text-2xl font-semibold text-white/88">{{ stats.total }}</div>
+            <div class="text-xs font-medium text-white/38">Selesai Dibayar</div>
+            <div class="mt-3 text-2xl font-semibold text-blue-100">{{ stats.paid }}</div>
           </div>
         </div>
       </section>
@@ -136,7 +132,7 @@ onMounted(async () => {
         </div>
       </section>
 
-      <section class="mt-5 space-y-3">
+      <section class="mt-5">
         <div v-if="loading" class="grid h-28 place-items-center rounded-lg border border-white/[.08] bg-white/[.025] text-sm text-white/40">
           Memuat pengajuan pencairan...
         </div>
@@ -144,71 +140,61 @@ onMounted(async () => {
           Belum ada pengajuan pencairan.
         </div>
 
-        <article v-for="request in filteredRequests" :key="request.id" class="rounded-lg border border-white/[.08] bg-white/[.025] p-4 transition hover:bg-white/[.035]">
-          <div class="grid gap-4 xl:grid-cols-[1fr_360px]">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full border px-3 py-1 text-[11px] font-semibold" :class="statusClass(request.status)">{{ request.status }}</span>
-                <span class="text-xs text-white/34">{{ request.date }}</span>
-              </div>
-              <h2 class="mt-3 text-lg font-semibold text-white/90">{{ request.creator || '-' }}</h2>
-              <div class="mt-2 grid gap-2 text-sm text-white/48 md:grid-cols-2">
-                <div>
-                  <div class="text-xs text-white/30">Rekening Tujuan</div>
-                  <div class="mt-1 font-medium text-white/72">{{ request.account || '-' }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-white/30">Nominal Diajukan</div>
-                  <div class="mt-1 font-semibold text-emerald-200">{{ request.amount }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid gap-2 rounded-lg border border-white/[.08] bg-black/20 p-3 sm:grid-cols-3 xl:grid-cols-2">
-              <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-400/12 px-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/18 disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'approved')">
-                <CheckCircleIcon class="h-4 w-4" />
-                Setujui
-              </button>
-              <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-400/12 px-3 text-sm font-semibold text-blue-100 transition hover:bg-blue-400/18 disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'paid')">
-                <BanknotesIcon class="h-4 w-4" />
-                Selesai
-              </button>
-              <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-400/12 px-3 text-sm font-semibold text-red-100 transition hover:bg-red-400/18 disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'rejected')">
-                <XCircleIcon class="h-4 w-4" />
-                Tolak
-              </button>
-              <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-white/[.055] px-3 text-sm font-semibold text-white/58 transition hover:bg-white/[.085] hover:text-white" type="button" @click="openDeleteModal(request)">
-                <TrashIcon class="h-4 w-4" />
-                Hapus
-              </button>
-            </div>
-          </div>
-        </article>
+        <div v-else class="overflow-x-auto rounded-lg border border-white/[.08] bg-white/[.025] p-3">
+          <table class="w-full min-w-[980px] border-separate border-spacing-y-2 text-left text-sm">
+            <thead class="text-[11px] uppercase tracking-[.12em] text-white/30">
+              <tr>
+                <th class="px-4 pb-1 font-medium">Creator</th>
+                <th class="px-4 pb-1 font-medium">Rekening</th>
+                <th class="px-4 pb-1 text-right font-medium">Nominal</th>
+                <th class="px-4 pb-1 font-medium">Status</th>
+                <th class="px-4 pb-1 text-right font-medium">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="request in filteredRequests" :key="request.id" class="group text-white/68">
+                <td class="rounded-l-lg border-y border-l border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
+                  <div class="font-semibold text-white/86">{{ request.creator || '-' }}</div>
+                  <div class="mt-1 text-xs text-white/34">{{ request.date || '-' }}</div>
+                </td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
+                  <div class="max-w-[320px] truncate font-medium text-white/72">{{ request.account || '-' }}</div>
+                  <div v-if="request.social_account" class="mt-1 text-xs text-white/34">{{ request.social_account }}</div>
+                </td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 text-right font-semibold text-emerald-200 transition group-hover:bg-white/[.045]">{{ request.amount }}</td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
+                  <span class="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold" :class="statusClass(request.status)">{{ request.status }}</span>
+                </td>
+                <td class="rounded-r-lg border-y border-r border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
+                  <div class="flex justify-end gap-2">
+                    <template v-if="canReview(request)">
+                      <button class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-emerald-100 transition hover:bg-white/[.085] disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'approved')">
+                        <CheckCircleIcon class="h-3.5 w-3.5" />
+                        Setujui
+                      </button>
+                      <button class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-red-100 transition hover:bg-white/[.085] disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'rejected')">
+                        <XCircleIcon class="h-3.5 w-3.5" />
+                        Tolak
+                      </button>
+                    </template>
+                    <button v-if="canComplete(request)" class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-blue-100 transition hover:bg-white/[.085] disabled:opacity-50" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'paid')">
+                      <BanknotesIcon class="h-3.5 w-3.5" />
+                      Selesaikan
+                    </button>
+                    <button v-if="!canReview(request) && canCancel(request)" class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/65 transition hover:bg-white/[.085] disabled:opacity-40" type="button" :disabled="savingId === request.id" @click="updatePayout(request, 'requested')">
+                      <XCircleIcon class="h-3.5 w-3.5" />
+                      Batalkan
+                    </button>
+                    <span v-if="isFinished(request)" class="text-xs font-medium text-white/28">Selesai</span>
+                    <span v-else-if="normalizeStatus(request.status) === 'rejected'" class="text-xs font-medium text-red-100/38">Ditolak</span>
+                    <span v-else-if="!canReview(request) && !canComplete(request) && !canCancel(request)" class="text-xs font-medium text-white/28">Terkunci</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
-
-      <div v-if="payoutToDelete" class="fixed inset-0 z-40 grid place-items-center bg-black/72 px-4 backdrop-blur-sm" @click.self="closeDeleteModal">
-        <section class="w-full max-w-md rounded-lg border border-white/10 bg-[#111113] p-5 shadow-[0_24px_80px_rgba(0,0,0,.48)]">
-          <div class="flex gap-4">
-            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-red-400/10 text-red-100">
-              <ExclamationTriangleIcon class="h-6 w-6 stroke-[1.8]" />
-            </div>
-            <div>
-              <h2 class="text-base font-semibold text-white/90">Hapus pengajuan?</h2>
-              <p class="mt-2 text-sm leading-6 text-white/46">Pengajuan pencairan ini akan dihapus dari database.</p>
-            </div>
-          </div>
-          <div class="mt-5 rounded-lg border border-white/[.08] bg-white/[.03] p-4">
-            <div class="text-sm font-semibold text-white/86">{{ payoutToDelete.creator || '-' }}</div>
-            <div class="mt-1 text-xs text-white/38">{{ payoutToDelete.amount }} · {{ payoutToDelete.account || '-' }}</div>
-          </div>
-          <div class="mt-6 flex justify-end gap-3">
-            <button class="h-10 rounded-lg bg-white/[.055] px-4 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]" type="button" :disabled="deleting" @click="closeDeleteModal">Batal</button>
-            <button class="h-10 rounded-lg bg-red-500/85 px-5 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-60" type="button" :disabled="deleting" @click="confirmDeletePayout">
-              {{ deleting ? 'Menghapus...' : 'Hapus' }}
-            </button>
-          </div>
-        </section>
-      </div>
     </div>
   </AppShell>
 </template>

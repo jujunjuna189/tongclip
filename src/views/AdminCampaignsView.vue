@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Bars3Icon, ExclamationTriangleIcon, MagnifyingGlassIcon, PhotoIcon, PlusIcon, Squares2X2Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { Bars3Icon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilSquareIcon, PhotoIcon, PlusIcon, Squares2X2Icon, TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
@@ -121,8 +121,14 @@ onMounted(() => store.loadAdminCampaigns())
             </div>
 
             <div class="mt-5 flex gap-2">
-              <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-9 items-center rounded-lg bg-white/[.055] px-4 text-xs font-semibold text-white/72 hover:bg-white/[.085]">Edit</RouterLink>
-              <button class="h-9 rounded-lg bg-red-400/10 px-4 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">Hapus</button>
+              <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-9 items-center gap-2 rounded-lg bg-white/[.055] px-4 text-xs font-semibold text-white/72 hover:bg-white/[.085]">
+                <PencilSquareIcon class="h-4 w-4" />
+                Edit
+              </RouterLink>
+              <button class="inline-flex h-9 items-center gap-2 rounded-lg bg-red-400/10 px-4 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">
+                <TrashIcon class="h-4 w-4" />
+                Hapus
+              </button>
             </div>
           </div>
         </article>
@@ -159,8 +165,14 @@ onMounted(() => store.loadAdminCampaigns())
                 </td>
                 <td class="rounded-r-lg border-y border-r border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <div class="flex gap-2">
-                    <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-8 items-center rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/72 hover:bg-white/[.085]">Edit</RouterLink>
-                    <button class="h-8 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">Hapus</button>
+                    <RouterLink :to="`/admin/campaigns/${campaign.id}/edit`" class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/72 hover:bg-white/[.085]">
+                      <PencilSquareIcon class="h-4 w-4" />
+                      Edit
+                    </RouterLink>
+                    <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(campaign)">
+                      <TrashIcon class="h-4 w-4" />
+                      Hapus
+                    </button>
                   </div>
                 </td>
               </tr>

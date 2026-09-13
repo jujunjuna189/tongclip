@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ArrowLeftIcon,
-  ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   ChevronRightIcon,
   CloudArrowDownIcon,
@@ -19,6 +18,7 @@ const route = useRoute()
 const store = useClipperStore()
 const videoUrl = ref('')
 const actionMessage = ref('')
+const shareMessage = ref('')
 const submitting = ref(false)
 const fallbackCampaign = {
   slug: String(route.params.slug),
@@ -90,6 +90,27 @@ const submitVideo = async () => {
   }
 }
 
+const shareCampaign = async () => {
+  const url = window.location.href
+  const title = campaign.value?.title || 'Campaign'
+  const text = campaign.value?.brand ? `${campaign.value.title} dari ${campaign.value.brand}` : title
+  shareMessage.value = ''
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url })
+      shareMessage.value = 'Campaign berhasil dibagikan.'
+      return
+    }
+
+    await navigator.clipboard.writeText(url)
+    shareMessage.value = 'Link campaign disalin.'
+  } catch (error) {
+    if (error?.name === 'AbortError') return
+    shareMessage.value = 'Gagal membagikan campaign.'
+  }
+}
+
 onMounted(() => store.loadCampaign(String(route.params.slug)))
 </script>
 
@@ -114,9 +135,6 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
                 <span class="rounded-full border border-purple-300/40 bg-purple-500/15 px-4 py-2 text-xs font-medium text-purple-100">{{ campaign.type }}</span>
                 <span class="rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-medium text-white/68">{{ campaign.category }}</span>
               </div>
-              <button class="absolute right-6 top-6 grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-black/45 text-white/72 backdrop-blur hover:text-white">
-                <ArrowTopRightOnSquareIcon class="h-5 w-5" />
-              </button>
               <div class="absolute bottom-7 left-7 right-7">
                 <p class="text-sm font-medium text-purple-200">{{ campaign.brand }}</p>
                 <h1 class="mt-3 max-w-4xl text-[36px] font-semibold leading-tight tracking-[-.03em]">{{ campaign.title }}</h1>
@@ -232,10 +250,11 @@ onMounted(() => store.loadCampaign(String(route.params.slug)))
               <ChevronRightIcon class="h-4 w-4" />
             </button>
             <p v-if="store.selectedAccount" class="mt-3 text-xs text-white/42">Akun aktif: {{ store.selectedAccount.name }} - {{ store.selectedAccount.handle }}</p>
-            <button class="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[.035] text-sm font-medium text-white/68 hover:text-white">
+            <button class="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[.035] text-sm font-medium text-white/68 hover:text-white" type="button" @click="shareCampaign">
               <ShareIcon class="h-4 w-4" />
               Bagikan
             </button>
+            <p v-if="shareMessage" class="mt-3 text-xs font-medium text-purple-300">{{ shareMessage }}</p>
           </section>
 
           <section class="dark-card rounded-lg p-5">

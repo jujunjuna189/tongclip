@@ -5,6 +5,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   DocumentArrowDownIcon,
+  PhotoIcon,
   PlayCircleIcon,
 } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
@@ -14,7 +15,14 @@ const route = useRoute()
 const store = useClipperStore()
 const loading = ref(false)
 const course = computed(() => store.courses.find((item) => item.id === Number(route.params.id)))
-const fallbackImage = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80'
+
+const resourceLabel = (url) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'Resource'
+  }
+}
 
 onMounted(async () => {
   loading.value = true
@@ -36,7 +44,11 @@ onMounted(async () => {
 
       <div v-if="course" class="mt-5 grid gap-6 xl:grid-cols-[1fr_360px]">
         <section class="dark-card overflow-hidden rounded-lg">
-          <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${course.image_url || fallbackImage})` }">
+          <div class="relative h-[420px] overflow-hidden bg-black/30">
+            <div v-if="course.image_url" class="absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: `url(${course.image_url})` }"></div>
+            <div v-else class="absolute inset-0 grid place-items-center bg-white/[.035] text-white/26">
+              <PhotoIcon class="h-20 w-20 stroke-[1.4]" />
+            </div>
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
             <div class="absolute bottom-7 left-7 right-7">
               <div class="flex items-center gap-2 text-xs font-semibold text-gradient-primary">
@@ -85,8 +97,11 @@ onMounted(async () => {
             <h2 class="text-lg font-semibold">Resource</h2>
             <div class="mt-4 space-y-3">
               <a v-for="item in course.resources || []" :key="item" :href="item" target="_blank" rel="noreferrer" class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left text-sm font-medium text-white/70 transition hover:border-purple-400/35 hover:text-white">
-                {{ item }}
-                <DocumentArrowDownIcon class="h-5 w-5 text-purple-300" />
+                <span class="min-w-0">
+                  <span class="block text-xs font-semibold uppercase tracking-[.12em] text-white/34">{{ resourceLabel(item) }}</span>
+                  <span class="mt-1 line-clamp-2 break-all text-sm leading-5 text-white/68">{{ item }}</span>
+                </span>
+                <DocumentArrowDownIcon class="ml-3 h-5 w-5 shrink-0 text-purple-300" />
               </a>
               <div v-if="!course.resources?.length" class="rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm text-white/42">
                 Resource belum tersedia.

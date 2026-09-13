@@ -15,6 +15,14 @@ const store = useClipperStore()
 const campaigns = computed(() => store.adminCampaigns.slice(0, 5))
 const submissions = computed(() => store.adminSubmissions.slice(0, 5))
 
+const normalizeStatus = (status) => String(status || 'review').toLowerCase().replace(/\s+/g, '_')
+const statusClass = (status) => {
+  const s = normalizeStatus(status)
+  if (s === 'approved') return 'border-emerald-300/25 bg-emerald-400/10 text-emerald-100'
+  if (s === 'rejected') return 'border-red-300/25 bg-red-400/10 text-red-100'
+  return 'border-amber-300/25 bg-amber-400/10 text-amber-100'
+}
+
 const adminStats = computed(() => [
   { label: 'Total Creator', value: String(store.adminCreators.length || 0), icon: UserGroupIcon, tone: 'text-purple-200' },
   { label: 'Campaign Aktif', value: String(store.adminCampaigns.length || 0), icon: MegaphoneIcon, tone: 'text-sky-200' },
@@ -111,8 +119,9 @@ onMounted(() => {
                   <div class="truncate text-sm font-medium text-white/84">{{ submission.caption || '-' }}</div>
                   <div class="mt-1 text-xs text-white/38">{{ submission.account || 'Tanpa akun' }}</div>
                 </div>
-                <span class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold text-amber-100">
-                  <CheckCircleIcon class="h-3.5 w-3.5" />
+                <span class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-3 py-1 text-[11px] font-semibold" :class="statusClass(submission.status)">
+                  <CheckCircleIcon v-if="normalizeStatus(submission.status) === 'approved'" class="h-3.5 w-3.5" />
+                  <ClockIcon v-else class="h-3.5 w-3.5" />
                   {{ submission.status || 'Review' }}
                 </span>
               </div>

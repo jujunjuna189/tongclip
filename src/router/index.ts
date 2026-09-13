@@ -10,6 +10,7 @@ import AdminCampaignCreateView from '../views/AdminCampaignCreateView.vue'
 import AdminCampaignEditView from '../views/AdminCampaignEditView.vue'
 import AdminCreatorsView from '../views/AdminCreatorsView.vue'
 import AdminCreatorCreateView from '../views/AdminCreatorCreateView.vue'
+import AdminCreatorEditView from '../views/AdminCreatorEditView.vue'
 import AdminCreatorInviteView from '../views/AdminCreatorInviteView.vue'
 import AdminPayoutsView from '../views/AdminPayoutsView.vue'
 import AdminSubmissionsView from '../views/AdminSubmissionsView.vue'
@@ -55,11 +56,13 @@ const router = createRouter({
     { path: '/admin/creators', name: 'admin-creators', component: AdminCreatorsView, meta: { title: 'Kelola Creator' } },
     { path: '/admin/creators/create', name: 'admin-creator-create', component: AdminCreatorCreateView, meta: { title: 'Tambah Creator' } },
     { path: '/admin/creators/invite', name: 'admin-creator-invite', component: AdminCreatorInviteView, meta: { title: 'Undang Creator' } },
+    { path: '/admin/creators/:id/edit', name: 'admin-creator-edit', component: AdminCreatorEditView, meta: { title: 'Edit Creator' } },
     { path: '/admin/payouts', name: 'admin-payouts', component: AdminPayoutsView, meta: { title: 'Payout' } },
     { path: '/admin/tickets', name: 'admin-tickets', component: AdminTicketsView, meta: { title: 'Log Tiket' } },
     { path: '/admin/courses', name: 'admin-courses', component: AdminCoursesView, meta: { title: 'Kelola Course Gratis' } },
     { path: '/admin/courses/create', name: 'admin-course-create', component: AdminCourseCreateView, meta: { title: 'Tambah Course' } },
     { path: '/admin/courses/:id/edit', name: 'admin-course-edit', component: AdminCourseEditView, meta: { title: 'Edit Course' } },
+    { path: '/admin/profile', name: 'admin-profile', component: ProfileView, meta: { title: 'Profile' } },
     { path: '/payment', name: 'payment', component: PaymentView, meta: { title: 'Pendapatan' } },
     { path: '/pendapatan', name: 'income', component: IncomeView, meta: { title: 'Pendapatan' } },
     { path: '/campaigns', name: 'campaigns', component: CampaignsView, meta: { title: 'Campaigns' } },

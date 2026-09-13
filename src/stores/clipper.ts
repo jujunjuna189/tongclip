@@ -79,6 +79,18 @@ export type Income = {
   status: string
 }
 
+export type Withdrawal = {
+  id: number
+  date: string
+  amount: string
+  amount_value: number
+  bank_name: string
+  bank_account_number: string
+  bank_account_name: string
+  social_account_id?: number | null
+  status: string
+}
+
 export type IncomeSummary = {
   stats: Array<{ label: string; value: number; suffix: string }>
   total_income: string
@@ -120,6 +132,7 @@ export type User = {
   income?: string
   status?: string
   onboarding_completed?: boolean
+  login_social_account_id?: number | null
   bank_name?: string
   bank_account_number?: string
   bank_account_name?: string
@@ -149,6 +162,12 @@ export type OnboardingState = {
 
 export type AdminSubmission = VideoSubmission & {
   campaign?: string | null
+  campaign_brand?: string | null
+  campaign_category?: string | null
+  campaign_rate?: string | null
+  campaign_rate_value?: number
+  campaign_deadline?: string | null
+  campaign_type?: string | null
   creator?: string | null
   views?: string
   views_value?: number
@@ -161,6 +180,12 @@ export type AdminCreator = User & {
   submissions_count?: number
   income?: string
   income_value?: number
+}
+
+export type AdminCreatorHistory = {
+  creator: Pick<User, 'id' | 'name' | 'handle' | 'email'>
+  incomes: Array<Income & { campaign?: string | null }>
+  withdrawals: Array<Withdrawal & { social_account?: string | null }>
 }
 
 export type BrandRequest = {
@@ -182,15 +207,18 @@ export type AdminPayout = {
   source: string
   creator?: string | null
   account: string
+  social_account?: string | null
   amount: string
   amount_value: number
   status: string
   type: string
+  reviewed_at?: string | null
 }
 
 export type AdminPayoutSummary = {
   total_income: string
   total_requested: string
+  total_remaining?: string
   items: AdminPayout[]
 }
 
@@ -250,6 +278,7 @@ export const useClipperStore = defineStore('clipper', {
   state: () => ({
     token: localStorage.getItem('clipper_token') || '',
     user: null as User | null,
+    loginSocialAccountId: (Number(localStorage.getItem('clipper_login_social_account_id')) || null) as number | null,
     stats: [] as Array<{ label: string; value: string }>,
     accounts: [] as Account[],
     selectedAccountId: (Number(localStorage.getItem('clipper_account_id')) || null) as number | null,
@@ -258,6 +287,7 @@ export const useClipperStore = defineStore('clipper', {
     dailyQuest: null as DailyQuest | null,
     campaignFilters: { categories: [] as string[], types: [] as string[] },
     incomes: [] as Income[],
+    withdrawals: [] as Withdrawal[],
     incomeSummary: null as IncomeSummary | null,
     announcements: [] as Announcement[],
     notifications: [] as NotificationItem[],
@@ -307,8 +337,17 @@ export const useClipperStore = defineStore('clipper', {
       this.user = data.user
       localStorage.setItem('clipper_token', data.token)
       localStorage.setItem('clipper_last_login_identifier', cleanIdentifier)
-      this.selectedAccountId = null
-      localStorage.removeItem('clipper_account_id')
+      this.loginSocialAccountId = data.user?.login_social_account_id || null
+      this.selectedAccountId = this.loginSocialAccountId || null
+
+      if (this.loginSocialAccountId) {
+        localStorage.setItem('clipper_account_id', String(this.loginSocialAccountId))
+        localStorage.setItem('clipper_login_social_account_id', String(this.loginSocialAccountId))
+      } else {
+        localStorage.removeItem('clipper_account_id')
+        localStorage.removeItem('clipper_login_social_account_id')
+      }
+
       await this.loadDashboard()
     },
     async register(payload: { name: string; email: string; password: string; handle?: string }) {
@@ -324,14 +363,18 @@ export const useClipperStore = defineStore('clipper', {
       this.user = data.user
       localStorage.setItem('clipper_token', data.token)
       this.selectedAccountId = null
+      this.loginSocialAccountId = null
       localStorage.removeItem('clipper_account_id')
+      localStorage.removeItem('clipper_login_social_account_id')
     },
     logout() {
       this.token = ''
       this.user = null
       this.selectedAccountId = null
+      this.loginSocialAccountId = null
       localStorage.removeItem('clipper_token')
       localStorage.removeItem('clipper_account_id')
+      localStorage.removeItem('clipper_login_social_account_id')
     },
     async loadMe() {
       const { data } = await api.get('/me')
@@ -346,6 +389,7 @@ export const useClipperStore = defineStore('clipper', {
       bank_name: string
       bank_account_number: string
       bank_account_name: string
+      social_account_id: number
     }> | FormData) {
       const { data } = payload instanceof FormData
         ? await api.post('/profile', payload)
@@ -515,17 +559,24 @@ export const useClipperStore = defineStore('clipper', {
       const { data } = await api.get('/incomes')
       this.incomes = data
     },
+    async loadWithdrawals() {
+      const { data } = await api.get('/withdrawals', {
+        params: this.selectedSocialAccountId ? { social_account_id: this.selectedSocialAccountId } : {},
+      })
+      this.withdrawals = data
+    },
     async loadIncomeSummary() {
       const { data } = await api.get('/income-summary')
       this.incomeSummary = data
     },
-    async requestWithdrawal(payload: { amount: number }) {
+    async requestWithdrawal(payload: { amount: number; social_account_id?: number }) {
       const { data } = await api.post('/withdrawals', payload)
       await this.loadDashboard()
       await this.loadIncomes()
+      await this.loadWithdrawals()
       return data
     },
-    async createSocialAccount(payload: {
+    async createSocialAccount(payload: FormData | {
       name: string
       email?: string
       handle: string
@@ -572,6 +623,16 @@ export const useClipperStore = defineStore('clipper', {
         ...notification,
         read_at: notification.read_at || new Date().toISOString(),
       }))
+    },
+    async markNotificationRead(id: number) {
+      await api.post(`/notifications/${id}/read`)
+      const now = new Date().toISOString()
+      const notification = this.notifications.find((item) => item.id === id)
+
+      if (notification && !notification.read_at) {
+        notification.read_at = now
+        this.unreadNotifications = Math.max(0, this.unreadNotifications - 1)
+      }
     },
     async loadLeaderboard() {
       const { data } = await api.get('/leaderboard')
@@ -672,8 +733,9 @@ export const useClipperStore = defineStore('clipper', {
       await api.delete(`/admin/submissions/${id}`)
       await this.loadAdminSubmissions()
     },
-    async updateAdminCreator(id: number, payload: Partial<{ name: string; handle: string; status: string }>) {
-      await api.patch(`/admin/creators/${id}`, payload)
+    async updateAdminCreator(id: number, payload: FormData) {
+      payload.append('_method', 'PATCH')
+      await api.post(`/admin/creators/${id}`, payload)
       await this.loadAdminCreators()
     },
     async createAdminCreator(payload: FormData | {
@@ -696,6 +758,10 @@ export const useClipperStore = defineStore('clipper', {
     async deleteAdminCreator(id: number) {
       await api.delete(`/admin/creators/${id}`)
       await this.loadAdminCreators()
+    },
+    async loadAdminCreatorHistory(id: number) {
+      const { data } = await api.get(`/admin/creators/${id}/history`)
+      return data as AdminCreatorHistory
     },
     async updateAdminPayout(id: string, payload: { status: string }) {
       await api.patch(`/admin/payouts/${id}`, payload)

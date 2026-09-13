@@ -2,7 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import {
   ArrowTopRightOnSquareIcon,
+  BriefcaseIcon,
   CheckIcon,
+  ClockIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
   TrashIcon,
@@ -28,6 +30,13 @@ const statusOptions = [
 ]
 
 const normalizeStatus = (status) => String(status || 'review').toLowerCase().replace(/\s+/g, '_')
+
+const isLocked = (submission) => {
+  const status = normalizeStatus(submission.status)
+  if (status !== 'approved' && status !== 'rejected') return false
+  if (!submission.reviewed_at) return false
+  return (Date.now() - new Date(submission.reviewed_at).getTime()) > 24 * 60 * 60 * 1000
+}
 const statusLabel = (status) => {
   const normalized = normalizeStatus(status)
   if (normalized === 'approved') return 'Approved'
@@ -177,48 +186,89 @@ watch(submissions, syncDrafts)
         </div>
 
         <article v-for="submission in filteredSubmissions" :key="submission.id" class="rounded-lg border border-white/[.08] bg-white/[.025] p-4 transition hover:bg-white/[.035]">
-          <div class="grid gap-4 xl:grid-cols-[1.1fr_340px]">
+          <div class="grid gap-3 xl:grid-cols-[1fr_300px]">
+            <!-- Info kiri -->
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full border px-3 py-1 text-[11px] font-semibold" :class="statusClass(submission.status)">{{ statusLabel(submission.status) }}</span>
-                <span class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold text-white/48">{{ submission.type || '-' }}</span>
-                <span class="text-xs text-white/34">{{ submission.submitted_at || '-' }}</span>
+                <span class="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold" :class="statusClass(submission.status)">{{ statusLabel(submission.status) }}</span>
+                <span class="rounded-full border border-white/10 bg-black/20 px-2.5 py-0.5 text-[11px] font-semibold text-white/40">{{ submission.type || '-' }}</span>
               </div>
-              <h2 class="mt-3 text-base font-semibold text-white/90">{{ submission.campaign || submission.caption || '-' }}</h2>
-              <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/45">
-                <span>Creator: <span class="text-white/72">{{ submission.creator || '-' }}</span></span>
-                <span>Akun: <span class="text-white/72">{{ submission.account || '-' }}</span></span>
+              <div class="mt-3 rounded-lg border border-purple-300/15 bg-purple-500/[.055] p-3">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.12em] text-purple-100/42">
+                      <BriefcaseIcon class="h-3.5 w-3.5" />
+                      Campaign
+                    </div>
+                    <div class="mt-1 truncate text-sm font-semibold text-white/88">{{ submission.campaign || '-' }}</div>
+                    <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/42">
+                      <span>{{ submission.campaign_brand || '-' }}</span>
+                      <span>{{ submission.campaign_category || '-' }}</span>
+                      <span>{{ submission.campaign_type || submission.type || '-' }}</span>
+                    </div>
+                  </div>
+                  <div class="grid shrink-0 gap-1 text-right text-[11px] text-white/42">
+                    <span class="font-semibold text-purple-100/80">{{ submission.campaign_rate || '-' }} / view</span>
+                    <span class="inline-flex items-center justify-end gap-1">
+                      <ClockIcon class="h-3.5 w-3.5" />
+                      {{ submission.campaign_deadline || 'Tanpa deadline' }}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <a :href="submission.link" target="_blank" rel="noreferrer" class="mt-4 inline-flex max-w-full items-center gap-2 rounded-lg border border-purple-300/20 bg-purple-400/10 px-3 py-2 text-sm font-semibold text-purple-100 transition hover:bg-purple-400/16">
-                <ArrowTopRightOnSquareIcon class="h-4 w-4 shrink-0" />
+              <div class="mt-3 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/42">
+                <span>Creator: <span class="text-white/70">{{ submission.creator || '-' }}</span></span>
+                <span>Akun: <span class="text-white/70">{{ submission.account || '-' }}</span></span>
+                <span>{{ submission.submitted_at || '-' }}</span>
+              </div>
+              <a :href="submission.link" target="_blank" rel="noreferrer" class="mt-2.5 inline-flex max-w-full items-center gap-1.5 rounded-lg border border-purple-300/20 bg-purple-400/10 px-2.5 py-1.5 text-xs font-semibold text-purple-100 transition hover:bg-purple-400/16">
+                <ArrowTopRightOnSquareIcon class="h-3.5 w-3.5 shrink-0" />
                 <span class="truncate">{{ submission.link || 'Buka video' }}</span>
               </a>
             </div>
 
-            <div class="rounded-lg border border-white/[.08] bg-black/20 p-3">
-              <div v-if="reviewDrafts[submission.id]" class="grid gap-3 sm:grid-cols-2">
+            <!-- Panel review kanan -->
+            <div class="rounded-lg border border-white/[.07] bg-black/20 p-3">
+              <div v-if="reviewDrafts[submission.id]" class="grid grid-cols-2 gap-2">
                 <label>
-                  <span class="text-xs font-medium text-white/38">Views Valid</span>
-                  <input v-model.number="reviewDrafts[submission.id].views" min="0" type="number" class="form-control form-number" />
+                  <span class="text-[11px] font-medium text-white/34">Views</span>
+                  <input v-model.number="reviewDrafts[submission.id].views" min="0" type="number" class="form-control form-number !h-9 !text-sm" :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'" />
                 </label>
                 <label>
-                  <span class="text-xs font-medium text-white/38">Payout Estimasi</span>
-                  <input v-model.number="reviewDrafts[submission.id].estimated_payout" min="0" type="number" class="form-control form-number" />
+                  <span class="text-[11px] font-medium text-white/34">Payout</span>
+                  <input v-model.number="reviewDrafts[submission.id].estimated_payout" min="0" type="number" class="form-control form-number !h-9 !text-sm" :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'" />
                 </label>
               </div>
-              <div class="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2">
-                <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-400/12 px-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/18 disabled:opacity-50" type="button" :disabled="savingId === submission.id" @click="updateSubmissionStatus(submission, 'approved')">
-                  <CheckIcon class="h-4 w-4" />
-                  Approve
-                </button>
-                <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-400/12 px-3 text-sm font-semibold text-red-100 transition hover:bg-red-400/18 disabled:opacity-50" type="button" :disabled="savingId === submission.id" @click="updateSubmissionStatus(submission, 'rejected')">
-                  <XMarkIcon class="h-4 w-4" />
-                  Reject
-                </button>
-                <button class="grid h-10 w-10 place-items-center rounded-lg bg-white/[.055] text-white/50 transition hover:bg-white/[.085] hover:text-white" type="button" @click="openDeleteModal(submission)" aria-label="Hapus submission">
-                  <TrashIcon class="h-4 w-4" />
-                </button>
+              <div class="mt-2 flex gap-1.5">
+                <template v-if="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'">
+                  <button
+                    class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40"
+                    :class="isLocked(submission) ? 'bg-white/[.03] text-white/28' : 'bg-white/[.055] text-white/65 hover:bg-white/[.085]'"
+                    type="button"
+                    :disabled="savingId === submission.id || isLocked(submission)"
+                    @click="updateSubmissionStatus(submission, 'review')"
+                  >
+                    <XMarkIcon class="h-3.5 w-3.5" />
+                    {{ isLocked(submission) ? 'Terkunci' : 'Batalkan' }}
+                  </button>
+                </template>
+                <template v-else>
+                  <button class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-400/12 px-3 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-400/18 disabled:opacity-50" type="button" :disabled="savingId === submission.id" @click="updateSubmissionStatus(submission, 'approved')">
+                    <CheckIcon class="h-3.5 w-3.5" />
+                    Approve
+                  </button>
+                  <button class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-400/12 px-3 text-xs font-semibold text-red-100 transition hover:bg-red-400/18 disabled:opacity-50" type="button" :disabled="savingId === submission.id" @click="updateSubmissionStatus(submission, 'rejected')">
+                    <XMarkIcon class="h-3.5 w-3.5" />
+                    Reject
+                  </button>
+                </template>
               </div>
+              <p v-if="(normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected') && !isLocked(submission)" class="mt-1.5 text-[10px] leading-4 text-white/24">
+                Bisa dibatalkan dalam 24 jam setelah review.
+              </p>
+              <p v-if="isLocked(submission)" class="mt-1.5 text-[10px] leading-4 text-amber-300/45">
+                Status sudah terkunci, tidak dapat diubah.
+              </p>
             </div>
           </div>
         </article>

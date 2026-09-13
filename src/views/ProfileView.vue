@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import axios from 'axios'
+import { PhotoIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
@@ -20,6 +21,7 @@ const form = ref({
 
 const user = computed(() => store.user)
 const initial = computed(() => user.value?.name?.charAt(0)?.toUpperCase() || 'C')
+const labelClass = 'text-xs font-medium text-white/44'
 
 const fillForm = () => {
   form.value = {
@@ -124,13 +126,32 @@ onMounted(async () => {
           <p class="mt-2 text-sm text-white/42">Ubah identitas akun dan data payout utama.</p>
         </div>
 
+        <div class="mt-6 border-b border-white/10 pb-6">
+          <span :class="labelClass">Avatar</span>
+          <label class="mt-2 flex min-h-28 cursor-pointer flex-col gap-4 rounded-lg border border-dashed border-white/[.12] bg-black/20 p-4 transition hover:border-purple-300/35 hover:bg-white/[.035] sm:flex-row sm:items-center">
+            <span class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg bg-white/[.055] text-white/44">
+              <img v-if="avatarPreview" :src="avatarPreview" alt="" class="h-full w-full object-cover" />
+              <PhotoIcon v-else class="h-8 w-8" />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-white/78">Upload avatar</span>
+              <span class="mt-1 block text-xs leading-5 text-white/38">Pilih file gambar untuk foto profile creator.</span>
+            </span>
+            <span class="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-4 text-xs font-semibold text-white shadow-blue sm:self-center">
+              <PlusIcon class="h-4 w-4" />
+              Pilih Foto
+            </span>
+            <input class="sr-only" type="file" accept="image/*" @change="chooseAvatar" />
+          </label>
+        </div>
+
         <div class="mt-6 grid gap-4 md:grid-cols-2">
           <label class="block">
-            <span class="text-xs font-medium text-white/44">Nama</span>
+            <span :class="labelClass">Nama</span>
             <input v-model="form.name" required class="form-control" placeholder="Nama lengkap" />
           </label>
           <label class="block">
-            <span class="text-xs font-medium text-white/44">Handle</span>
+            <span :class="labelClass">Handle</span>
             <input v-model="form.handle" required class="form-control" placeholder="@handle" />
           </label>
         </div>
@@ -139,15 +160,15 @@ onMounted(async () => {
           <h3 class="text-base font-semibold text-white/86">Informasi Payout</h3>
           <div class="mt-4 grid gap-4 md:grid-cols-2">
             <label class="block">
-              <span class="text-xs font-medium text-white/44">Bank</span>
+              <span :class="labelClass">Bank</span>
               <input v-model="form.bank_name" class="form-control" placeholder="BCA" />
             </label>
             <label class="block">
-              <span class="text-xs font-medium text-white/44">Nomor Rekening</span>
+              <span :class="labelClass">Nomor Rekening</span>
               <input v-model="form.bank_account_number" class="form-control" placeholder="1234567890" />
             </label>
             <label class="block md:col-span-2">
-              <span class="text-xs font-medium text-white/44">Nama Rekening</span>
+              <span :class="labelClass">Nama Rekening</span>
               <input v-model="form.bank_account_name" class="form-control" placeholder="Nama pemilik rekening" />
             </label>
           </div>
