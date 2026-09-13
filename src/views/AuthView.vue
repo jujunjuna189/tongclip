@@ -98,9 +98,9 @@ const login = async () => {
         </p>
 
         <div class="mt-12 flex justify-center gap-6 text-xs text-white/28">
-          <a href="#">Privacy Policy</a>
+          <RouterLink to="/privacy-policy" class="transition hover:text-white/60">Privacy Policy</RouterLink>
           <span>•</span>
-          <a href="#">Terms of Service</a>
+          <RouterLink to="/terms-of-service" class="transition hover:text-white/60">Terms of Service</RouterLink>
         </div>
       </div>
     </section>

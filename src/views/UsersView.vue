@@ -4,14 +4,33 @@ import AppShell from '../components/AppShell.vue'
 import { useClipperStore } from '../stores/clipper'
 
 const store = useClipperStore()
-const users = computed(() => store.leaderboard)
+const users = computed(() => {
+  const accountIncomes = new Map(store.leaderboard.map((item) => [item.id, item]))
+
+  return store.accounts
+    .filter((account) => account.type === 'social_account')
+    .map((account) => {
+      const leaderboardItem = accountIncomes.get(account.id)
+
+      return {
+        id: account.id,
+        name: account.name,
+        handle: account.handle,
+        platform: account.platform,
+        income: leaderboardItem?.income || account.balance,
+        income_value: leaderboardItem?.income_value ?? account.balance_value,
+      }
+    })
+    .sort((a, b) => b.income_value - a.income_value)
+})
 const requests = computed(() => store.brandRequests)
 
 const updateRequest = async (request, status) => {
   await store.updateBrandRequest(request.brand_id, request.user_id, status)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await store.loadDashboard()
   store.loadLeaderboard()
   store.loadBrandRequests()
 })
@@ -23,28 +42,19 @@ onMounted(() => {
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-black">Top Leaderboard</h1>
-          <p class="mt-2 text-white/50">Creator dengan pendapatan tertinggi bulan ini.</p>
+          <p class="mt-2 text-white/50">Akun sosial dengan pendapatan tertinggi bulan ini.</p>
         </div>
       </div>
       <div class="mt-6 grid gap-4 md:grid-cols-3">
-        <article v-for="user in users" :key="user.name" class="flex flex-col rounded-lg border border-white/10 bg-white/[.025] p-5">
+        <article v-for="user in users" :key="user.id" class="flex flex-col rounded-lg border border-white/10 bg-white/[.025] p-5">
           <div class="flex items-start justify-between">
             <div>
               <div class="grid h-12 w-12 place-items-center rounded-lg bg-purple-500/20 text-xl font-black text-purple-100">{{ user.name[0] }}</div>
               <h2 class="mt-5 text-xl font-black">{{ user.name }}</h2>
               <p class="mt-1 text-white/46">{{ user.handle }}</p>
+              <p v-if="user.platform" class="mt-2 text-xs font-semibold uppercase tracking-wider text-white/32">{{ user.platform }}</p>
             </div>
             <p class="rounded-lg bg-white/[.05] px-3 py-2 text-xl font-bold text-gradient-primary">{{ user.income }}</p>
-          </div>
-          
-          <div v-if="user.accounts && user.accounts.length" class="mt-6 border-t border-white/10 pt-4">
-            <h3 class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Akun Sosial</h3>
-            <div class="space-y-2">
-              <div v-for="acc in user.accounts" :key="acc.id" class="flex items-center justify-between rounded-md bg-white/[.02] p-2 text-sm">
-                <span class="font-medium text-white/80">{{ acc.platform || 'Platform' }}</span>
-                <span class="text-white/50">{{ acc.handle }}</span>
-              </div>
-            </div>
           </div>
         </article>
       </div>

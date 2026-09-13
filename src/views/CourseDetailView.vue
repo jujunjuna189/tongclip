@@ -14,6 +14,7 @@ const route = useRoute()
 const store = useClipperStore()
 const loading = ref(false)
 const course = computed(() => store.courses.find((item) => item.id === Number(route.params.id)))
+const fallbackImage = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80'
 
 onMounted(async () => {
   loading.value = true
@@ -35,7 +36,7 @@ onMounted(async () => {
 
       <div v-if="course" class="mt-5 grid gap-6 xl:grid-cols-[1fr_360px]">
         <section class="dark-card overflow-hidden rounded-lg">
-          <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${course.image_url})` }">
+          <div class="relative h-[420px] bg-cover bg-center" :style="{ backgroundImage: `url(${course.image_url || fallbackImage})` }">
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
             <div class="absolute bottom-7 left-7 right-7">
               <div class="flex items-center gap-2 text-xs font-semibold text-gradient-primary">
@@ -83,10 +84,13 @@ onMounted(async () => {
           <section class="dark-card rounded-lg p-5">
             <h2 class="text-lg font-semibold">Resource</h2>
             <div class="mt-4 space-y-3">
-              <button v-for="item in course.resources || []" :key="item" class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left text-sm font-medium text-white/70">
+              <a v-for="item in course.resources || []" :key="item" :href="item" target="_blank" rel="noreferrer" class="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/[.025] p-4 text-left text-sm font-medium text-white/70 transition hover:border-purple-400/35 hover:text-white">
                 {{ item }}
                 <DocumentArrowDownIcon class="h-5 w-5 text-purple-300" />
-              </button>
+              </a>
+              <div v-if="!course.resources?.length" class="rounded-lg border border-white/10 bg-white/[.025] p-4 text-sm text-white/42">
+                Resource belum tersedia.
+              </div>
             </div>
           </section>
 

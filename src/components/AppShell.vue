@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   AcademicCapIcon,
@@ -87,6 +87,22 @@ const toggleNotifications = async () => {
   }
 }
 
+const handleOutsidePointerDown = (event) => {
+  const target = event.target
+
+  if (!(target instanceof Element)) {
+    return
+  }
+
+  if (!target.closest('[data-popup="creator-account"]')) {
+    showCreatorDropdown.value = false
+  }
+
+  if (!target.closest('[data-popup="notifications"]')) {
+    showNotifications.value = false
+  }
+}
+
 const nav = [
   { label: 'Dashboard', path: '/dashboard', icon: HomeIcon },
   { label: 'Campaigns', path: '/campaigns', icon: MegaphoneIcon },
@@ -102,6 +118,7 @@ const adminNav = [
   { label: 'Kelola Creator', path: '/admin/creators', icon: UsersIcon },
   { label: 'Course Gratis', path: '/admin/courses', icon: TrophyIcon },
   { label: 'Payout', path: '/admin/payouts', icon: WalletIcon },
+  { label: 'Log Tiket', path: '/admin/tickets', icon: ChatBubbleLeftRightIcon },
 ]
 
 const isAdminArea = computed(() => route.path.startsWith('/admin'))
@@ -109,6 +126,8 @@ const activeNav = computed(() => isAdminArea.value ? adminNav : nav)
 const title = computed(() => route.meta?.title || activeNav.value.find(item => item.path === route.path)?.label || (isAdminArea.value ? 'Admin Area' : 'Member Area'))
 
 onMounted(() => {
+  document.addEventListener('pointerdown', handleOutsidePointerDown)
+
   if (store.token && !store.user) {
     store.loadMe()
   }
@@ -120,6 +139,10 @@ onMounted(() => {
   if (store.token) {
     store.loadNotifications()
   }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleOutsidePointerDown)
 })
 </script>
 
@@ -199,6 +222,7 @@ onMounted(() => {
         </div>
 
         <div
+          v-if="!isAdminArea"
           class="border-t border-white/10 transition-all duration-300 ease-out"
           :class="collapsed ? 'mt-0 max-h-0 overflow-hidden translate-y-1 border-transparent pt-0 opacity-0' : 'mt-6 max-h-none overflow-visible translate-y-0 pt-5 opacity-100 delay-100'"
         >
@@ -245,7 +269,7 @@ onMounted(() => {
             </div>
           </div>
           <div class="flex shrink-0 items-center gap-2.5 md:gap-4">
-            <div v-if="accounts.length" class="relative hidden md:block">
+            <div v-if="accounts.length" class="relative hidden md:block" data-popup="creator-account">
             <button 
               type="button" 
               class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -282,7 +306,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div class="relative">
+          <div class="relative" data-popup="notifications">
             <button class="relative grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[.045] text-sm text-white/70 transition hover:border-purple-400/40 hover:text-white" type="button" aria-label="Buka notifikasi" @click="toggleNotifications">
               <BellIcon class="h-5 w-5 stroke-[1.8]" />
               <span v-if="unreadNotifications" class="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand px-1 text-[10px] font-black">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
@@ -350,7 +374,7 @@ onMounted(() => {
         </div>
 
         <div v-if="accounts.length" class="border-t border-white/10 px-4 py-3 md:hidden">
-          <div class="relative">
+          <div class="relative" data-popup="creator-account">
             <button
               type="button"
               class="flex h-10 w-full min-w-0 items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:cursor-not-allowed disabled:opacity-50"

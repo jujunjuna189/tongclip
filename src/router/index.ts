@@ -13,6 +13,7 @@ import AdminCreatorCreateView from '../views/AdminCreatorCreateView.vue'
 import AdminCreatorInviteView from '../views/AdminCreatorInviteView.vue'
 import AdminPayoutsView from '../views/AdminPayoutsView.vue'
 import AdminSubmissionsView from '../views/AdminSubmissionsView.vue'
+import AdminTicketsView from '../views/AdminTicketsView.vue'
 import AdminCoursesView from '../views/AdminCoursesView.vue'
 import AdminCourseCreateView from '../views/AdminCourseCreateView.vue'
 import AdminCourseEditView from '../views/AdminCourseEditView.vue'
@@ -28,6 +29,8 @@ import ContactAdminView from '../views/ContactAdminView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import AnnouncementsView from '../views/AnnouncementsView.vue'
 import LogoutView from '../views/LogoutView.vue'
+import TermsOfServiceView from '../views/TermsOfServiceView.vue'
+import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import { useClipperStore } from '../stores/clipper'
 
 const router = createRouter({
@@ -35,6 +38,8 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: '/auth' },
     { path: '/auth', name: 'auth', component: AuthView, meta: { title: 'Auth' } },
+    { path: '/privacy-policy', name: 'privacy-policy', component: PrivacyPolicyView, meta: { title: 'Privacy Policy' } },
+    { path: '/terms-of-service', name: 'terms-of-service', component: TermsOfServiceView, meta: { title: 'Terms of Service' } },
     { path: '/daftar', name: 'register', component: RegisterView, meta: { title: 'Daftar' } },
     { path: '/lupa-password', name: 'forgot-password', component: ForgotPasswordView, meta: { title: 'Lupa Password' } },
     { path: '/onboarding', name: 'onboarding', component: OnboardingView, meta: { title: 'Setup Akun' } },
@@ -50,6 +55,7 @@ const router = createRouter({
     { path: '/admin/creators/create', name: 'admin-creator-create', component: AdminCreatorCreateView, meta: { title: 'Tambah Creator' } },
     { path: '/admin/creators/invite', name: 'admin-creator-invite', component: AdminCreatorInviteView, meta: { title: 'Undang Creator' } },
     { path: '/admin/payouts', name: 'admin-payouts', component: AdminPayoutsView, meta: { title: 'Payout' } },
+    { path: '/admin/tickets', name: 'admin-tickets', component: AdminTicketsView, meta: { title: 'Log Tiket' } },
     { path: '/admin/courses', name: 'admin-courses', component: AdminCoursesView, meta: { title: 'Kelola Course Gratis' } },
     { path: '/admin/courses/create', name: 'admin-course-create', component: AdminCourseCreateView, meta: { title: 'Tambah Course' } },
     { path: '/admin/courses/:id/edit', name: 'admin-course-edit', component: AdminCourseEditView, meta: { title: 'Edit Course' } },
@@ -64,13 +70,13 @@ const router = createRouter({
     { path: '/course-gratis/:id/watch', name: 'course-watch', component: CourseWatchView, meta: { title: 'Putar Course' } },
     { path: '/hubungi-admin', name: 'contact', component: ContactAdminView, meta: { title: 'Hubungi Admin' } },
     { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Profile' } },
-    { path: '/announcement', name: 'announcements', component: AnnouncementsView, meta: { title: 'Announcement' } },
+    { path: '/announcement', name: 'announcements', component: AnnouncementsView, meta: { title: 'FAQ & Peraturan' } },
     { path: '/logout', name: 'logout', component: LogoutView, meta: { title: 'Logout' } },
   ],
 })
 
 router.beforeEach(async (to) => {
-  const publicRoutes = ['auth', 'register', 'forgot-password', 'logout']
+  const publicRoutes = ['auth', 'register', 'forgot-password', 'privacy-policy', 'terms-of-service', 'logout']
   const store = useClipperStore()
 
   if (!store.token || publicRoutes.includes(String(to.name))) {

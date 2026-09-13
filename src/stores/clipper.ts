@@ -95,6 +95,22 @@ export type VideoSubmission = {
   account?: string | null
 }
 
+export type DailyQuest = {
+  reward: string
+  completed_days: number
+  target_days: number
+  remaining_days: number
+  today_completed: boolean
+  claimed_count: number
+  days: Array<{
+    day: number
+    date: string
+    label: string
+    completed: boolean
+    is_today: boolean
+  }>
+}
+
 export type User = {
   id: number
   name: string
@@ -108,6 +124,15 @@ export type User = {
   bank_account_number?: string
   bank_account_name?: string
   accounts?: Account[]
+}
+
+export type LeaderboardItem = {
+  id: number
+  name: string
+  handle: string
+  platform?: string
+  income: string
+  income_value: number
 }
 
 export type BrandOption = {
@@ -186,6 +211,18 @@ export type NotificationItem = {
   created_at?: string | null
 }
 
+export type SupportTicket = {
+  id: number
+  subject: string
+  message: string
+  status: 'processing' | 'resolved'
+  status_label: string
+  created_at?: string | null
+  creator?: string | null
+  creator_handle?: string | null
+  creator_email?: string | null
+}
+
 export type Course = {
   id: number
   title: string
@@ -218,13 +255,16 @@ export const useClipperStore = defineStore('clipper', {
     selectedAccountId: (Number(localStorage.getItem('clipper_account_id')) || null) as number | null,
     campaigns: [] as Campaign[],
     submissions: [] as VideoSubmission[],
+    dailyQuest: null as DailyQuest | null,
     campaignFilters: { categories: [] as string[], types: [] as string[] },
     incomes: [] as Income[],
     incomeSummary: null as IncomeSummary | null,
     announcements: [] as Announcement[],
     notifications: [] as NotificationItem[],
+    tickets: [] as SupportTicket[],
+    adminTickets: [] as SupportTicket[],
     unreadNotifications: 0,
-    leaderboard: [] as User[],
+    leaderboard: [] as LeaderboardItem[],
     onboarding: null as OnboardingState | null,
     courses: [] as Course[],
     adminCampaigns: [] as Campaign[],
@@ -385,6 +425,7 @@ export const useClipperStore = defineStore('clipper', {
         this.accounts = data.accounts || []
         this.campaigns = data.campaigns || []
         this.submissions = data.submissions || []
+        this.dailyQuest = data.daily_quest || null
         this.announcements = data.announcements || []
 
         if (data.selected_account_id) {
@@ -483,6 +524,23 @@ export const useClipperStore = defineStore('clipper', {
       await this.loadDashboard()
       await this.loadIncomes()
       return data
+    },
+    async contactAdmin(payload: { subject: string; message: string }) {
+      const { data } = await api.post('/contact-admin', payload)
+      await this.loadTickets()
+      return data
+    },
+    async loadTickets() {
+      const { data } = await api.get('/contact-admin')
+      this.tickets = data
+    },
+    async loadAdminTickets() {
+      const { data } = await api.get('/admin/tickets')
+      this.adminTickets = data
+    },
+    async updateAdminTicket(id: number, payload: { status: 'processing' | 'resolved' }) {
+      await api.patch(`/admin/tickets/${id}`, payload)
+      await this.loadAdminTickets()
     },
     async loadAnnouncements() {
       const { data } = await api.get('/announcements')

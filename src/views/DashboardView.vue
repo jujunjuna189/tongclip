@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import {
   ArrowPathIcon,
+  CheckCircleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   FunnelIcon,
   GiftIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
 import CampaignCard from '../components/CampaignCard.vue'
@@ -15,8 +17,32 @@ import { useClipperStore } from '../stores/clipper'
 const store = useClipperStore()
 const tabs = ['Semua', 'Pending', 'Approved', 'Rejected', 'Need Action', 'Deleted']
 const activeTab = ref('Semua')
+const showDailyQuestRules = ref(false)
 const campaigns = computed(() => store.campaigns)
 const submissions = computed(() => store.submissions)
+const dailyQuest = computed(() => store.dailyQuest || {
+  reward: 'Rp15.000',
+  completed_days: 0,
+  target_days: 7,
+  remaining_days: 7,
+  today_completed: false,
+  claimed_count: 0,
+  days: Array.from({ length: 7 }, (_, index) => ({
+    day: index + 1,
+    date: '',
+    label: `H ${index + 1}`,
+    completed: false,
+    is_today: index === 6,
+  })),
+})
+const dailyQuestClaimed = computed(() => new Intl.NumberFormat('id-ID').format(dailyQuest.value.claimed_count))
+const dailyQuestStatus = computed(() => {
+  if (dailyQuest.value.completed_days >= dailyQuest.value.target_days) {
+    return 'Quest selesai · Hadiah siap diklaim'
+  }
+
+  return `${dailyQuest.value.completed_days}/${dailyQuest.value.target_days} hari · Tinggal ${dailyQuest.value.remaining_days} lagi`
+})
 const stats = computed(() => store.stats.length ? store.stats : [
   { label: 'Total Pendapatan', value: 'Rp0' },
   { label: 'Bisa Dicairkan', value: 'Rp0' },
@@ -48,15 +74,27 @@ onMounted(() => store.loadDashboard())
           </div>
           <div class="inline-flex items-center gap-2 rounded-full border border-purple-400/50 bg-purple-500/15 px-6 py-2.5 text-sm font-semibold text-purple-100 shadow-blue">
             <GiftIcon class="h-[18px] w-[18px] stroke-[1.8]" />
-            Rp 15.000
+            {{ dailyQuest.reward }}
           </div>
         </div>
 
         <div class="mt-6 rounded-lg border border-white/8 bg-black/28 p-4">
           <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-            <div v-for="day in 7" :key="day" class="grid aspect-[1.75/1] place-items-center rounded-lg border border-white/8 bg-white/[.035] text-sm font-medium text-white/48">
-              <span v-if="day < 7">H {{ day }}</span>
-              <GiftIcon v-else class="h-6 w-6 text-purple-400/45" />
+            <div
+              v-for="day in dailyQuest.days"
+              :key="day.day"
+              class="grid aspect-[1.75/1] place-items-center rounded-lg border text-sm font-medium transition"
+              :class="[
+                day.completed
+                  ? 'border-purple-300/45 bg-purple-500/18 text-purple-100 shadow-blue'
+                  : day.is_today
+                    ? 'border-sky-300/35 bg-sky-500/10 text-sky-100/78'
+                    : 'border-white/8 bg-white/[.035] text-white/48',
+              ]"
+            >
+              <CheckCircleIcon v-if="day.completed" class="h-6 w-6 stroke-[1.8]" />
+              <GiftIcon v-else-if="day.day === dailyQuest.target_days" class="h-6 w-6 text-purple-400/45" />
+              <span v-else>H {{ day.day }}</span>
             </div>
           </div>
           <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -64,18 +102,27 @@ onMounted(() => store.loadDashboard())
               <span class="grid h-7 w-7 place-items-center rounded-full bg-purple-500/30 text-[10px]">DA</span>
               <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full bg-sky-500/30 text-[10px]">RE</span>
               <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full bg-cyan-500/30 text-[10px]">NC</span>
-              <span class="ml-3"><span class="text-purple-300">1.000+</span> Orang Telah Claim Hadiah</span>
+              <span class="ml-3"><span class="text-purple-300">{{ dailyQuestClaimed }}+</span> Orang Telah Claim Hadiah</span>
             </div>
           </div>
         </div>
 
-        <button class="mt-3 flex h-11 w-full items-center justify-between rounded-lg border border-white/8 bg-white/[.025] px-4 text-left text-sm font-medium text-white/68">
-          Submit 1 Video hari ini
+        <RouterLink
+          to="/campaigns"
+          class="mt-3 flex h-11 w-full items-center justify-between rounded-lg border border-white/8 bg-white/[.025] px-4 text-left text-sm font-medium text-white/68 transition hover:border-white/14 hover:bg-white/[.045] hover:text-white"
+        >
+          {{ dailyQuest.today_completed ? 'Video hari ini sudah masuk' : 'Submit 1 Video hari ini' }}
           <ChevronRightIcon class="h-4 w-4 text-white/46" />
-        </button>
+        </RouterLink>
         <div class="mt-4 flex items-center justify-between text-xs font-medium text-white/50">
-          <span>0/7 hari · Tinggal 7 lagi</span>
-          <span class="inline-flex items-center gap-1">Aturan misi <ChevronRightIcon class="h-3.5 w-3.5" /></span>
+          <span>{{ dailyQuestStatus }}</span>
+          <button
+            class="inline-flex items-center gap-1 transition hover:text-white/78"
+            type="button"
+            @click="showDailyQuestRules = true"
+          >
+            Aturan misi <ChevronRightIcon class="h-3.5 w-3.5" />
+          </button>
         </div>
       </section>
 
@@ -194,6 +241,52 @@ onMounted(() => store.loadDashboard())
 
       <div class="fixed bottom-5 right-5 z-20 hidden rounded-full border border-white/10 bg-black/80 px-6 py-3 text-sm font-medium text-white/80 shadow-card backdrop-blur lg:block">
         Onboarding Progress <span class="ml-3 text-purple-400">0/4 steps</span> <span class="font-normal text-white/35">completed</span>
+      </div>
+
+      <div
+        v-if="showDailyQuestRules"
+        class="fixed inset-0 z-50 grid place-items-center bg-black/72 px-5 backdrop-blur-sm"
+        @click.self="showDailyQuestRules = false"
+      >
+        <section class="w-full max-w-lg rounded-xl border border-white/10 bg-[#0d0d12] p-5 shadow-card">
+          <div class="flex items-start justify-between gap-5">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[.16em] text-purple-200/72">Daily Quest</p>
+              <h2 class="mt-2 text-xl font-semibold tracking-[-.02em] text-white">Aturan misi</h2>
+            </div>
+            <button
+              class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/[.035] text-white/56 transition hover:bg-white/[.07] hover:text-white"
+              type="button"
+              aria-label="Tutup aturan misi"
+              @click="showDailyQuestRules = false"
+            >
+              <XMarkIcon class="h-5 w-5 stroke-[1.8]" />
+            </button>
+          </div>
+
+          <div class="mt-5 space-y-3 text-sm leading-6 text-white/64">
+            <p class="rounded-lg border border-white/8 bg-white/[.035] p-4">
+              Submit minimal 1 video per hari untuk menyelesaikan 1 kotak Daily Quest.
+            </p>
+            <p class="rounded-lg border border-white/8 bg-white/[.035] p-4">
+              Progress dihitung dari hari submit video, maksimal 1 progress per hari walaupun kamu submit lebih dari 1 video.
+            </p>
+            <p class="rounded-lg border border-white/8 bg-white/[.035] p-4">
+              Selesaikan {{ dailyQuest.target_days }} hari dalam periode quest untuk membuka hadiah {{ dailyQuest.reward }}.
+            </p>
+            <p class="rounded-lg border border-white/8 bg-white/[.035] p-4">
+              Video yang dihitung adalah submission campaign yang punya link video dan berhasil masuk ke sistem.
+            </p>
+          </div>
+
+          <RouterLink
+            to="/campaigns"
+            class="mt-5 flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand text-sm font-semibold text-white shadow-blue"
+            @click="showDailyQuestRules = false"
+          >
+            Mulai submit video
+          </RouterLink>
+        </section>
       </div>
     </div>
   </AppShell>

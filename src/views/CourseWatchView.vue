@@ -11,6 +11,13 @@ const loading = ref(false)
 const activeLessonIndex = ref(Number(route.query.lesson || 0))
 const course = computed(() => store.courses.find((item) => item.id === Number(route.params.id)))
 const activeLesson = computed(() => course.value?.lessons?.[activeLessonIndex.value])
+const videoUrl = computed(() => activeLesson.value?.video_url || course.value?.url || '')
+const youtubeEmbedUrl = computed(() => {
+  const url = videoUrl.value
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/)
+
+  return match ? `https://www.youtube.com/embed/${match[1]}` : ''
+})
 
 watch(() => route.query.lesson, (lesson) => {
   activeLessonIndex.value = Number(lesson || 0)
@@ -36,10 +43,18 @@ onMounted(async () => {
 
       <div v-if="course" class="mt-5 grid gap-6 xl:grid-cols-[1fr_340px]">
         <section class="dark-card overflow-hidden rounded-lg">
-          <video
-            v-if="activeLesson?.video_url"
+          <iframe
+            v-if="youtubeEmbedUrl"
             class="aspect-video w-full bg-black"
-            :src="activeLesson.video_url"
+            :src="youtubeEmbedUrl"
+            title="Course video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+          <video
+            v-else-if="videoUrl"
+            class="aspect-video w-full bg-black"
+            :src="videoUrl"
             controls
             autoplay
             playsinline
