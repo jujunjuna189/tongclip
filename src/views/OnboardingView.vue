@@ -128,11 +128,11 @@ onMounted(load)
         <template v-if="generatedCredentials">
           <p class="text-sm font-medium text-emerald-100/72">Akun berhasil digabungkan</p>
           <h1 class="mt-3 text-[30px] font-semibold leading-tight tracking-[-.03em]">Data login kamu</h1>
-          <p class="mt-4 text-sm leading-6 text-white/48">Pakai handle dan password ini kalau ingin masuk lagi.</p>
+          <p class="mt-4 text-sm leading-6 text-white/48">Pakai username dan password ini kalau ingin masuk lagi.</p>
 
           <div class="mt-7 grid gap-3">
             <div class="rounded-lg border border-white/10 bg-black/24 p-4">
-              <div class="text-xs font-medium text-white/38">Email atau handle</div>
+              <div class="text-xs font-medium text-white/38">Email atau username</div>
               <div class="mt-2 text-base font-semibold text-white/88">{{ generatedCredentials.identifier }}</div>
             </div>
             <div class="rounded-lg border border-white/10 bg-black/24 p-4">
@@ -216,7 +216,7 @@ onMounted(load)
                   <div v-if="ownerDropdownOpen" class="absolute left-0 right-0 top-14 z-30 rounded-lg border border-white/10 bg-[#111113] p-2 shadow-[0_18px_42px_rgba(0,0,0,.38)]">
                     <div class="relative">
                       <MagnifyingGlassIcon class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
-                      <input v-model="ownerSearch" class="h-10 w-full rounded-md border border-white/10 bg-black/30 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/25" placeholder="Cari nama atau handle..." />
+                      <input v-model="ownerSearch" class="h-10 w-full rounded-md border border-white/10 bg-black/30 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/25" placeholder="Cari nama atau username..." />
                     </div>
 
                     <div class="mt-2 max-h-52 overflow-y-auto">

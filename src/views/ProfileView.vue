@@ -115,7 +115,7 @@ onMounted(async () => {
         </div>
 
         <div class="mt-6 rounded-lg border border-white/10 bg-white/[.025] p-4">
-          <div class="text-xs text-white/34">Handle aktif</div>
+          <div class="text-xs text-white/34">Username aktif</div>
           <div class="mt-2 text-lg font-semibold text-gradient-primary">{{ user?.handle || '-' }}</div>
         </div>
       </aside>
@@ -151,7 +151,7 @@ onMounted(async () => {
             <input v-model="form.name" required class="form-control" placeholder="Nama lengkap" />
           </label>
           <label class="block">
-            <span :class="labelClass">Handle</span>
+            <span :class="labelClass">Username</span>
             <input v-model="form.handle" required class="form-control" placeholder="@handle" />
           </label>
         </div>

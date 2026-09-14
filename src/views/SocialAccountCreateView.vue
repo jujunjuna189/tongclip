@@ -201,7 +201,7 @@ const createAccount = async () => {
             <input v-model="form.email" type="email" :class="inputClass" placeholder="Opsional" />
           </label>
           <label class="block">
-            <span :class="labelClass">Handle</span>
+            <span :class="labelClass">Username</span>
             <input v-model="form.handle" required :class="inputClass" placeholder="@handle" @input="markHandleEdited" />
           </label>
           <label class="block">

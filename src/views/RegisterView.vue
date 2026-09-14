@@ -75,7 +75,7 @@ const register = async () => {
           <label class="mt-6 block text-sm font-medium text-white/58">Email</label>
           <input v-model="email" required type="email" class="mt-3 h-14 w-full rounded-xl border border-white/10 bg-black/20 px-5 text-base font-normal text-white outline-none placeholder:text-white/22 focus:border-purple-500/70" placeholder="nama@email.com" />
 
-          <label class="mt-6 block text-sm font-medium text-white/58">Handle (Username)</label>
+          <label class="mt-6 block text-sm font-medium text-white/58">Username</label>
           <input v-model="handle" @input="onHandleInput" required type="text" class="mt-3 h-14 w-full rounded-xl border border-white/10 bg-black/20 px-5 text-base font-normal text-white outline-none placeholder:text-white/22 focus:border-purple-500/70" placeholder="username" />
 
           <label class="mt-6 block text-sm font-medium text-white/58">Password</label>

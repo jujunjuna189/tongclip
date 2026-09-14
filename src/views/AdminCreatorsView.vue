@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
             <thead class="text-[11px] uppercase tracking-[.12em] text-white/30">
               <tr>
                 <th class="px-4 pb-1 font-medium">Creator</th>
-                <th class="px-4 pb-1 font-medium">Handle</th>
+                <th class="px-4 pb-1 font-medium">Username</th>
                 <th class="px-4 pb-1 font-medium">Akun</th>
                 <th class="px-4 pb-1 font-medium">Video</th>
                 <th class="px-4 pb-1 font-medium">Pendapatan</th>
@@ -352,7 +352,7 @@ onBeforeUnmount(() => {
           <div class="flex items-start justify-between gap-4">
             <div>
               <h2 class="text-base font-semibold text-white/90">Edit creator</h2>
-              <p class="mt-2 text-sm leading-6 text-white/46">Ubah nama, handle, dan status creator.</p>
+              <p class="mt-2 text-sm leading-6 text-white/46">Ubah nama, username, dan status creator.</p>
             </div>
             <button class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/[.045] text-white/48 transition hover:bg-white/[.075] hover:text-white" type="button" @click="closeEditModal">
               <XMarkIcon class="h-4 w-4" />
@@ -365,7 +365,7 @@ onBeforeUnmount(() => {
               <input v-model="editForm.name" required class="form-control" placeholder="Nama creator" />
             </label>
             <label class="block">
-              <span class="text-xs font-medium text-white/44">Handle</span>
+              <span class="text-xs font-medium text-white/44">Username</span>
               <input v-model="editForm.handle" class="form-control" placeholder="@creator" />
             </label>
             <label class="block">

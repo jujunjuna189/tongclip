@@ -222,7 +222,7 @@ onMounted(async () => {
               <input v-model="form.email" required type="email" :class="inputClass" placeholder="creator@example.com" />
             </label>
             <label class="block">
-              <span :class="labelClass">Handle</span>
+              <span :class="labelClass">Username</span>
               <input v-model="form.handle" required :class="inputClass" placeholder="@creator" @input="markHandleEdited" />
             </label>
             <label class="block">

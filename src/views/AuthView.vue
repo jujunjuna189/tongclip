@@ -40,13 +40,16 @@ const login = async () => {
 
       <div class="mx-auto flex w-full max-w-[530px] grow flex-col justify-center py-10">
         <div class="text-center">
-          <h1 class="text-[34px] font-semibold leading-tight tracking-[-.035em]">Selamat datang di Clipper</h1>
+          <h1 class="text-[34px] font-semibold leading-tight tracking-[-.035em]">Selamat datang di<br/>Tongkrongan Clipper</h1>
           <p class="mt-5 text-base font-normal text-white/48">Masuk ke akun kamu</p>
         </div>
 
-        <button class="mt-10 flex h-16 items-center justify-center gap-4 rounded-xl border border-white/10 bg-white/[.055] text-base font-medium text-white/78 transition hover:border-white/18 hover:bg-white/[.075]">
-          <span class="text-2xl font-semibold text-gradient-primary">G</span>
-          Lanjutkan dengan Google
+        <button class="mt-10 flex h-16 items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[.055] px-5 text-base font-medium text-white/78 transition hover:border-white/18 hover:bg-white/[.075]">
+          <span class="flex min-w-0 items-center gap-4">
+            <span class="text-2xl font-semibold text-gradient-primary">G</span>
+            <span class="truncate">Lanjutkan dengan Google</span>
+          </span>
+          <span class="shrink-0 rounded-md border border-white/10 bg-white/[.045] px-2.5 py-1 text-xs font-medium text-white/45">On-going</span>
         </button>
 
         <div class="my-8 flex items-center gap-7 text-sm text-white/48">
@@ -56,10 +59,10 @@ const login = async () => {
         </div>
 
         <form @submit.prevent="login">
-          <label class="block text-sm font-medium text-white/58">Email / Handle</label>
+          <label class="block text-sm font-medium text-white/58">Email / Username</label>
           <input
             class="mt-3 h-16 w-full rounded-xl border border-white/10 bg-black/20 px-5 text-base font-normal text-white outline-none placeholder:text-white/22 focus:border-purple-500/70"
-            placeholder="Email, handle user, atau handle akun sosial"
+            placeholder="Email, username user, atau username akun sosial"
             v-model="identifier"
           />
 
