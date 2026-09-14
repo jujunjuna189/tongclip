@@ -259,7 +259,7 @@ const createCampaign = async () => {
         </div>
       </section>
 
-      <section v-if="currentStep === 2" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
+      <section v-if="currentStep === 2" class="mt-5 lg:rounded-lg lg:border lg:border-white/[.08] lg:bg-white/[.025] lg:p-5 lg:p-6">
         <div class="max-w-xl">
           <h2 class="text-base font-semibold text-white/86">Media & Brief</h2>
           <p class="mt-1 text-sm text-white/38">Tambahkan gambar dan arahan singkat untuk creator.</p>
@@ -282,7 +282,7 @@ const createCampaign = async () => {
             </div>
           </div>
 
-          <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+          <div class="lg:rounded-lg lg:border lg:border-white/[.08] lg:bg-black/20 lg:p-4">
             <div>
               <p class="text-xs font-semibold uppercase text-purple-200/80">2. Brief & Rules</p>
               <h3 class="mt-2 text-sm font-semibold text-white/84">Arahan untuk Creator</h3>
@@ -319,7 +319,7 @@ const createCampaign = async () => {
             </div>
           </div>
 
-          <div class="rounded-lg border border-white/[.08] bg-black/20 p-4">
+          <div class="lg:rounded-lg lg:border lg:border-white/[.08] lg:bg-black/20 lg:p-4">
             <div>
               <p class="text-xs font-semibold uppercase text-purple-200/80">3. Asset & Platform</p>
               <h3 class="mt-2 text-sm font-semibold text-white/84">Materi Pendukung</h3>

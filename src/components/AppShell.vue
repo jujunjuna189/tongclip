@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
+  EllipsisVerticalIcon,
   HomeIcon,
   MegaphoneIcon,
   QuestionMarkCircleIcon,
@@ -19,6 +20,7 @@ import {
   WalletIcon,
   CheckIcon,
   PlusIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import { useClipperStore } from '../stores/clipper'
 import LogoMark from './LogoMark.vue'
@@ -29,6 +31,7 @@ const store = useClipperStore()
 const collapsed = ref(false)
 const showDashboardMenu = ref(false)
 const showNotifications = ref(false)
+const showMoreMenu = ref(false)
 const accounts = computed(() => store.accounts)
 const isBrand = computed(() => store.user?.role === 'brand')
 const notifications = computed(() => store.notifications)
@@ -131,6 +134,9 @@ const adminNav = [
 
 const isAdminArea = computed(() => route.path.startsWith('/admin'))
 const activeNav = computed(() => isAdminArea.value ? adminNav : nav)
+const bottomNav = computed(() => activeNav.value.slice(0, 4))
+const overflowNav = computed(() => activeNav.value.slice(4))
+const hideBottomNav = computed(() => /\/(create|edit)(\/|$)/.test(route.path))
 const title = computed(() => route.meta?.title || activeNav.value.find(item => item.path === route.path)?.label || (isAdminArea.value ? 'Admin Area' : 'Member Area'))
 const profilePath = computed(() => isAdminArea.value ? '/admin/profile' : '/profile')
 
@@ -321,7 +327,7 @@ onBeforeUnmount(() => {
               <span v-if="unreadNotifications" class="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-b from-[#a088ff] to-bluebrand px-1 text-[10px] font-black">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
             </button>
 
-            <div v-if="showNotifications" class="absolute right-0 top-12 z-30 w-[340px] max-w-[calc(100vw-2rem)] rounded-lg border border-white/10 bg-[#111113] p-2 shadow-[0_18px_42px_rgba(0,0,0,.38)]">
+            <div v-if="showNotifications" class="fixed inset-x-3 top-[72px] z-30 rounded-lg border border-white/10 bg-[#111113] p-2 shadow-[0_18px_42px_rgba(0,0,0,.38)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[340px]">
               <div class="px-3 py-2 text-sm font-semibold text-white/86">Notifikasi</div>
               <div class="max-h-80 overflow-y-auto">
                 <button v-for="notification in notifications" :key="notification.id" class="block w-full rounded-md px-3 py-3 text-left transition hover:bg-white/[.045]" type="button" @click="openNotification(notification)">
@@ -425,15 +431,15 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <div class="min-w-0 px-4 pb-28 pt-5 md:px-7 md:pb-6 md:pt-6">
+      <div class="min-w-0 px-4 pt-5 md:px-7 md:pb-6 md:pt-6" :class="hideBottomNav ? 'pb-6' : 'pb-28'">
         <slot />
       </div>
     </section>
 
-    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#09090B]/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_42px_rgba(0,0,0,.38)] backdrop-blur lg:hidden">
-      <div class="mx-auto grid max-w-md grid-cols-5 gap-1">
+    <nav v-if="!hideBottomNav" class="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#09090B]/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_42px_rgba(0,0,0,.38)] backdrop-blur lg:hidden">
+      <div class="mx-auto grid max-w-md gap-1" :class="overflowNav.length ? 'grid-cols-5' : 'grid-cols-' + bottomNav.length">
         <RouterLink
-          v-for="item in activeNav"
+          v-for="item in bottomNav"
           :key="item.path"
           :to="item.path"
           class="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold leading-none transition"
@@ -442,7 +448,49 @@ onBeforeUnmount(() => {
           <component :is="item.icon" class="h-5 w-5 shrink-0 stroke-[1.8]" />
           <span class="w-full truncate text-center">{{ item.label }}</span>
         </RouterLink>
+
+        <button
+          v-if="overflowNav.length"
+          class="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold leading-none transition"
+          :class="overflowNav.some(i => route.path === i.path || route.path.startsWith(i.path + '/')) ? 'bg-white/[.09] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)]' : 'text-white/45 active:bg-white/[.055] active:text-white/86'"
+          type="button"
+          @click="showMoreMenu = true"
+        >
+          <EllipsisVerticalIcon class="h-5 w-5 shrink-0 stroke-[1.8]" />
+          <span>Lainnya</span>
+        </button>
       </div>
     </nav>
+
+    <!-- Modal menu overflow -->
+    <Teleport to="body">
+      <div
+        v-if="showMoreMenu"
+        class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm lg:hidden"
+        @click.self="showMoreMenu = false"
+      >
+        <div class="w-full max-w-md rounded-t-2xl border-t border-white/10 bg-[#111113] px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
+          <div class="mb-4 flex items-center justify-between px-1">
+            <span class="text-sm font-semibold text-white/70">Menu Lainnya</span>
+            <button class="grid h-8 w-8 place-items-center rounded-lg bg-white/[.055] text-white/50 transition hover:bg-white/[.085] hover:text-white" type="button" @click="showMoreMenu = false">
+              <XMarkIcon class="h-4 w-4" />
+            </button>
+          </div>
+          <div class="grid grid-cols-4 gap-2">
+            <RouterLink
+              v-for="item in overflowNav"
+              :key="item.path"
+              :to="item.path"
+              class="flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-4 text-[11px] font-semibold leading-none transition"
+              :class="route.path === item.path || route.path.startsWith(item.path + '/') ? 'bg-white/[.09] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)]' : 'bg-white/[.04] text-white/55 hover:bg-white/[.07] hover:text-white'"
+              @click="showMoreMenu = false"
+            >
+              <component :is="item.icon" class="h-6 w-6 stroke-[1.6]" />
+              <span class="w-full truncate text-center">{{ item.label }}</span>
+            </RouterLink>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </main>
 </template>
