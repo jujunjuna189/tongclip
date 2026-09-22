@@ -3,7 +3,10 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   Bars3Icon,
   BanknotesIcon,
+  CheckCircleIcon,
+  ClockIcon,
   ExclamationTriangleIcon,
+  EyeIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
@@ -13,6 +16,7 @@ import {
   UserGroupIcon,
   VideoCameraIcon,
   WalletIcon,
+  XCircleIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import AppShell from '../components/AppShell.vue'
@@ -24,11 +28,17 @@ const statusFilter = ref('all')
 const viewMode = ref('card')
 const loading = ref(false)
 const deleting = ref(false)
+const approvingId = ref(null)
+const approvalError = ref('')
+const creatorToReject = ref(null)
+const rejectionNote = ref('')
+const rejecting = ref(false)
 const showFilters = ref(false)
 const filterPopup = ref(null)
 const creatorToDelete = ref(null)
 const historyLoading = ref(false)
 const historyModal = ref(null)
+const previewCreator = ref(null)
 const historyTab = ref('income')
 
 const statuses = computed(() => {
@@ -47,6 +57,7 @@ const filteredCreators = computed(() => {
 })
 const totalIncome = computed(() => store.adminCreators.reduce((total, creator) => total + (creator.income_value || 0), 0))
 const totalVideos = computed(() => store.adminCreators.reduce((total, creator) => total + (creator.submissions_count || 0), 0))
+const pendingApprovals = computed(() => store.adminCreators.filter((creator) => String(creator.status || '').toLowerCase() === 'review').length)
 const activeFilterCount = computed(() => Number(statusFilter.value !== 'all'))
 const historyIncomeTotal = computed(() => (historyModal.value?.incomes || []).reduce((total, item) => total + (item.amount_value || 0), 0))
 const historyPaidTotal = computed(() => (historyModal.value?.withdrawals || [])
@@ -63,7 +74,7 @@ const statusClass = (status) => {
   const normalized = String(status || '').toLowerCase()
   if (normalized === 'active') return 'bg-emerald-400/10 text-emerald-100/82'
   if (normalized === 'review') return 'bg-amber-400/10 text-amber-100/82'
-  if (normalized === 'blocked') return 'bg-red-400/10 text-red-100/82'
+  if (normalized === 'rejected' || normalized === 'blocked') return 'bg-red-400/10 text-red-100/82'
   return 'bg-white/[.055] text-white/58'
 }
 
@@ -113,6 +124,57 @@ const confirmDeleteCreator = async () => {
   }
 }
 
+const approveCreator = async (creator) => {
+  approvingId.value = creator.id
+  approvalError.value = ''
+
+  try {
+    const payload = new FormData()
+    payload.append('status', 'active')
+    await store.updateAdminCreator(creator.id, payload)
+  } catch (exception) {
+    approvalError.value = exception?.response?.data?.message || 'Pendaftaran belum berhasil disetujui. Silakan coba lagi.'
+  } finally {
+    approvingId.value = null
+  }
+}
+
+const isWaitingApproval = (creator) => String(creator.status || '').toLowerCase() === 'review'
+
+const openRejectModal = (creator) => {
+  creatorToReject.value = creator
+  rejectionNote.value = ''
+  approvalError.value = ''
+}
+
+const closeRejectModal = () => {
+  if (rejecting.value) return
+  creatorToReject.value = null
+  rejectionNote.value = ''
+}
+
+const rejectCreator = async () => {
+  if (!creatorToReject.value || !rejectionNote.value.trim()) return
+  rejecting.value = true
+  approvalError.value = ''
+
+  try {
+    const payload = new FormData()
+    payload.append('status', 'rejected')
+    payload.append('rejection_note', rejectionNote.value.trim())
+    await store.updateAdminCreator(creatorToReject.value.id, payload)
+    closeRejectModal()
+  } catch (exception) {
+    approvalError.value = exception?.response?.data?.message || 'Pendaftaran belum berhasil ditolak. Silakan coba lagi.'
+  } finally {
+    rejecting.value = false
+    if (!approvalError.value) {
+      creatorToReject.value = null
+      rejectionNote.value = ''
+    }
+  }
+}
+
 const handleOutsidePointerDown = (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
@@ -151,7 +213,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="mt-5 grid gap-4 md:grid-cols-3">
+      <p v-if="approvalError" class="mt-5 rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">{{ approvalError }}</p>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <section class="rounded-lg border border-white/[.08] bg-white/[.025] p-4">
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -177,6 +241,15 @@ onBeforeUnmount(() => {
               <div class="mt-2 text-2xl font-semibold text-white/90">{{ rupiah(totalIncome) }}</div>
             </div>
             <WalletIcon class="h-7 w-7 text-purple-300" />
+          </div>
+        </section>
+        <section class="rounded-lg border border-amber-300/15 bg-amber-400/[.04] p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-medium text-white/40">Menunggu Persetujuan</div>
+              <div class="mt-2 text-2xl font-semibold text-white/90">{{ pendingApprovals }}</div>
+            </div>
+            <ClockIcon class="h-7 w-7 text-amber-200" />
           </div>
         </section>
       </div>
@@ -265,7 +338,23 @@ onBeforeUnmount(() => {
             <div class="ml-auto text-sm font-semibold text-gradient-primary">{{ creator.income }}</div>
           </div>
 
-          <div class="mt-5 grid grid-cols-2 gap-2">
+          <div v-if="isWaitingApproval(creator)" class="mt-3">
+            <button class="inline-flex h-9 items-center gap-2 rounded-lg border border-purple-300/20 bg-purple-500/[.08] px-3 text-xs font-semibold text-purple-100 transition hover:bg-purple-500/15" type="button" @click="previewCreator = creator">
+              <EyeIcon class="h-4 w-4" /> Preview akun sosial
+            </button>
+          </div>
+
+          <div v-if="isWaitingApproval(creator)" class="mt-5 grid grid-cols-2 gap-2">
+            <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-400/12 px-3 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-400/18 disabled:opacity-50" type="button" :disabled="approvingId === creator.id" @click="approveCreator(creator)">
+              <CheckCircleIcon class="h-4 w-4" />
+              {{ approvingId === creator.id ? 'Menyetujui...' : 'Setujui' }}
+            </button>
+            <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100 transition hover:bg-red-400/16" type="button" :disabled="approvingId === creator.id" @click="openRejectModal(creator)">
+              <XCircleIcon class="h-4 w-4" />
+              Tolak
+            </button>
+          </div>
+          <div v-else class="mt-5 grid grid-cols-2 gap-2">
             <button class="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-white/[.055] px-2.5 text-xs font-semibold text-emerald-100/82 hover:bg-white/[.085]" type="button" @click="openHistoryModal(creator, 'income')">
               <WalletIcon class="h-4 w-4" />
               Pendapatan
@@ -315,7 +404,10 @@ onBeforeUnmount(() => {
                   </div>
                 </td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ creator.handle }}</td>
-                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ creator.accounts_count || 0 }}</td>
+                <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
+                  <div>{{ creator.accounts_count || 0 }}</div>
+                  <button v-if="isWaitingApproval(creator)" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-purple-200 hover:text-purple-100" type="button" @click="previewCreator = creator"><EyeIcon class="h-3.5 w-3.5" /> Preview</button>
+                </td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">{{ creator.submissions_count || 0 }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 font-semibold text-gradient-primary transition group-hover:bg-white/[.045]">{{ creator.income }}</td>
                 <td class="border-y border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
@@ -323,22 +415,34 @@ onBeforeUnmount(() => {
                 </td>
                 <td class="rounded-r-lg border-y border-r border-white/[.06] bg-white/[.028] px-4 py-4 transition group-hover:bg-white/[.045]">
                   <div class="flex flex-wrap justify-end gap-2">
-                    <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-emerald-100/82 hover:bg-white/[.085]" type="button" @click="openHistoryModal(creator, 'income')">
+                    <template v-if="isWaitingApproval(creator)">
+                      <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-emerald-400/12 px-3 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-400/18 disabled:opacity-50" type="button" :disabled="approvingId === creator.id" @click="approveCreator(creator)">
+                        <CheckCircleIcon class="h-4 w-4" />
+                        {{ approvingId === creator.id ? 'Menyetujui...' : 'Setujui' }}
+                      </button>
+                      <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100 transition hover:bg-red-400/16" type="button" :disabled="approvingId === creator.id" @click="openRejectModal(creator)">
+                        <XCircleIcon class="h-4 w-4" />
+                        Tolak
+                      </button>
+                    </template>
+                    <template v-else>
+                      <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-emerald-100/82 hover:bg-white/[.085]" type="button" @click="openHistoryModal(creator, 'income')">
                       <WalletIcon class="h-4 w-4" />
                       Pendapatan
-                    </button>
-                    <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-blue-100/82 hover:bg-white/[.085]" type="button" @click="openHistoryModal(creator, 'withdrawal')">
+                      </button>
+                      <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-blue-100/82 hover:bg-white/[.085]" type="button" @click="openHistoryModal(creator, 'withdrawal')">
                       <BanknotesIcon class="h-4 w-4" />
                       Pengajuan
-                    </button>
-                    <RouterLink :to="`/admin/creators/${creator.id}/edit`" class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/72 hover:bg-white/[.085]">
+                      </button>
+                      <RouterLink :to="`/admin/creators/${creator.id}/edit`" class="inline-flex h-8 items-center gap-2 rounded-lg bg-white/[.055] px-3 text-xs font-semibold text-white/72 hover:bg-white/[.085]">
                       <PencilSquareIcon class="h-4 w-4" />
                       Edit
-                    </RouterLink>
-                    <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(creator)">
+                      </RouterLink>
+                      <button class="inline-flex h-8 items-center gap-2 rounded-lg bg-red-400/10 px-3 text-xs font-semibold text-red-100/82 hover:bg-red-400/16" type="button" @click="openDeleteModal(creator)">
                       <TrashIcon class="h-4 w-4" />
                       Hapus
-                    </button>
+                      </button>
+                    </template>
                   </div>
                 </td>
               </tr>
@@ -373,6 +477,7 @@ onBeforeUnmount(() => {
               <select v-model="editForm.status" class="form-control">
                 <option value="active">Active</option>
                 <option value="review">Review</option>
+                <option value="rejected">Rejected</option>
                 <option value="blocked">Blocked</option>
               </select>
             </label>
@@ -382,6 +487,63 @@ onBeforeUnmount(() => {
             <button class="h-10 rounded-lg bg-white/[.055] px-4 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]" type="button" :disabled="saving" @click="closeEditModal">Batal</button>
             <button class="h-10 rounded-lg bg-gradient-to-b from-[#a088ff] to-bluebrand px-5 text-sm font-semibold text-white shadow-blue transition hover:opacity-90 disabled:opacity-60" type="submit" :disabled="saving">
               {{ saving ? 'Menyimpan...' : 'Simpan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div v-if="previewCreator" class="fixed inset-0 z-40 grid place-items-center bg-black/72 px-4 backdrop-blur-sm" @click.self="previewCreator = null">
+        <section class="w-full max-w-lg rounded-lg border border-white/10 bg-[#111113] p-5 shadow-[0_24px_80px_rgba(0,0,0,.48)]" role="dialog" aria-modal="true" aria-label="Preview akun sosial">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <h2 class="text-base font-semibold text-white/90">Akun sosial diajukan</h2>
+              <p class="mt-1 truncate text-sm text-white/46">{{ previewCreator.name }} · {{ previewCreator.handle }}</p>
+            </div>
+            <button class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/[.045] text-white/48 transition hover:bg-white/[.075] hover:text-white" type="button" aria-label="Tutup preview" @click="previewCreator = null"><XMarkIcon class="h-4 w-4" /></button>
+          </div>
+          <div class="mt-5 border-t border-white/10 pt-4 text-sm">
+            <span class="text-white/42">WhatsApp</span>
+            <span class="ml-3 font-medium text-white/82">{{ previewCreator.whatsapp_number || '-' }}</span>
+          </div>
+          <div class="mt-4 max-h-[50vh] space-y-2 overflow-y-auto">
+            <div v-for="account in previewCreator.submitted_social_accounts || []" :key="account.id" class="flex items-center justify-between gap-3 rounded-lg border border-white/[.08] bg-white/[.025] px-4 py-3">
+              <div class="min-w-0">
+                <p class="text-xs font-medium text-white/42">{{ account.platform === 'youtube' ? 'YouTube' : account.platform === 'instagram' ? 'Instagram' : account.platform === 'facebook' ? 'Facebook' : 'TikTok' }}</p>
+                <p class="mt-1 truncate text-sm font-semibold text-white/82">{{ account.handle }}</p>
+              </div>
+              <a :href="account.social_url" target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs font-semibold text-purple-200 hover:text-purple-100">Lihat profil</a>
+            </div>
+            <p v-if="!previewCreator.submitted_social_accounts?.length" class="py-4 text-sm text-white/40">Belum ada link akun sosial.</p>
+          </div>
+        </section>
+      </div>
+
+      <div v-if="creatorToReject" class="fixed inset-0 z-40 grid place-items-center bg-black/72 px-4 backdrop-blur-sm" @click.self="closeRejectModal">
+        <form class="w-full max-w-md rounded-lg border border-white/10 bg-[#111113] p-5 shadow-[0_24px_80px_rgba(0,0,0,.48)]" @submit.prevent="rejectCreator">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex gap-4">
+              <div class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-red-400/10 text-red-100">
+                <XCircleIcon class="h-6 w-6" />
+              </div>
+              <div>
+                <h2 class="text-base font-semibold text-white/90">Tolak pendaftaran?</h2>
+                <p class="mt-2 text-sm leading-6 text-white/46">Berikan alasan yang jelas agar {{ creatorToReject.name }} mengetahui data yang perlu diperbaiki.</p>
+              </div>
+            </div>
+            <button class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/[.045] text-white/48 transition hover:bg-white/[.075] hover:text-white" type="button" @click="closeRejectModal">
+              <XMarkIcon class="h-4 w-4" />
+            </button>
+          </div>
+
+          <label class="mt-5 block">
+            <span class="text-xs font-medium text-white/44">Catatan penolakan</span>
+            <textarea v-model="rejectionNote" required maxlength="2000" rows="5" class="mt-2 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-white/25 focus:border-purple-400/50" placeholder="Contoh: Link akun sosial belum dapat diakses. Mohon perbarui link lalu hubungi admin."></textarea>
+          </label>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button class="h-10 rounded-lg bg-white/[.055] px-4 text-sm font-semibold text-white/70 transition hover:bg-white/[.085]" type="button" :disabled="rejecting" @click="closeRejectModal">Batal</button>
+            <button class="h-10 rounded-lg bg-red-500/85 px-5 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50" type="submit" :disabled="rejecting || !rejectionNote.trim()">
+              {{ rejecting ? 'Menolak...' : 'Tolak Pendaftaran' }}
             </button>
           </div>
         </form>

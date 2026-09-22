@@ -24,6 +24,8 @@ const form = ref({
   email: '',
   handle: '',
   platform: 'tiktok',
+  whatsapp_number: '',
+  social_url: '',
   bank_name: '',
   bank_account_number: '',
   bank_account_name: '',
@@ -93,6 +95,16 @@ const createPayload = () => {
   if (form.value.email.trim()) {
     payload.append('email', form.value.email.trim())
   }
+
+  const socialFields = [
+    'whatsapp_number',
+    'social_url',
+  ]
+
+  socialFields.forEach((field) => {
+    const value = form.value[field].trim()
+    if (value) payload.append(field, value)
+  })
 
   if (form.value.bank_name.trim()) {
     payload.append('bank_name', form.value.bank_name.trim())
@@ -212,6 +224,14 @@ const createAccount = async () => {
               <option value="youtube">YouTube</option>
               <option value="facebook">Facebook</option>
             </select>
+          </label>
+          <label class="block">
+            <span :class="labelClass">No. WhatsApp</span>
+            <input v-model="form.whatsapp_number" type="tel" :class="inputClass" placeholder="081234567890" />
+          </label>
+          <label class="block">
+            <span :class="labelClass">Link Akun Sosial</span>
+            <input v-model="form.social_url" type="url" :class="inputClass" placeholder="https://tiktok.com/@username" />
           </label>
         </div>
       </section>

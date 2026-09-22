@@ -29,6 +29,7 @@ const form = ref({
   handle: '',
   password: '',
   status: 'active',
+  rejection_note: '',
   bank_name: '',
   bank_account_number: '',
   bank_account_name: '',
@@ -97,6 +98,7 @@ const updateCreator = async () => {
     payload.append('email', form.value.email)
     payload.append('handle', form.value.handle)
     payload.append('status', form.value.status)
+    if (form.value.status === 'rejected') payload.append('rejection_note', form.value.rejection_note)
     payload.append('bank_name', form.value.bank_name)
     payload.append('bank_account_number', form.value.bank_account_number)
     payload.append('bank_account_name', form.value.bank_account_name)
@@ -130,6 +132,7 @@ onMounted(async () => {
     handle: creator.handle || '',
     password: '',
     status: String(creator.status || 'Active').toLowerCase(),
+    rejection_note: creator.rejection_note || '',
     bank_name: creator.bank_name || '',
     bank_account_number: creator.bank_account_number || '',
     bank_account_name: creator.bank_account_name || '',
@@ -254,8 +257,13 @@ onMounted(async () => {
               <select v-model="form.status" :class="selectClass">
                 <option class="bg-black" value="active">Active</option>
                 <option class="bg-black" value="review">Review</option>
+                <option class="bg-black" value="rejected">Rejected</option>
                 <option class="bg-black" value="blocked">Blocked</option>
               </select>
+            </label>
+            <label v-if="form.status === 'rejected'" class="block md:col-span-2">
+              <span :class="labelClass">Catatan Penolakan</span>
+              <textarea v-model="form.rejection_note" required maxlength="2000" rows="4" class="form-control min-h-28 resize-none py-3" placeholder="Jelaskan data yang perlu diperbaiki"></textarea>
             </label>
           </div>
         </section>

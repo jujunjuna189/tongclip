@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AuthView from '../views/AuthView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import PendingApprovalView from '../views/PendingApprovalView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import OnboardingView from '../views/OnboardingView.vue'
 import DashboardView from '../views/DashboardView.vue'
@@ -43,6 +44,7 @@ const router = createRouter({
     { path: '/privacy-policy', name: 'privacy-policy', component: PrivacyPolicyView, meta: { title: 'Privacy Policy' } },
     { path: '/terms-of-service', name: 'terms-of-service', component: TermsOfServiceView, meta: { title: 'Terms of Service' } },
     { path: '/daftar', name: 'register', component: RegisterView, meta: { title: 'Daftar' } },
+    { path: '/menunggu-persetujuan', name: 'pending-approval', component: PendingApprovalView, meta: { title: 'Status Pendaftaran' } },
     { path: '/lupa-password', name: 'forgot-password', component: ForgotPasswordView, meta: { title: 'Lupa Password' } },
     { path: '/onboarding', name: 'onboarding', component: OnboardingView, meta: { title: 'Setup Akun' } },
     { path: '/peninjauan-akun', redirect: '/onboarding' },
@@ -84,12 +86,26 @@ router.beforeEach(async (to) => {
   const publicRoutes = ['auth', 'register', 'forgot-password', 'privacy-policy', 'terms-of-service', 'logout']
   const store = useClipperStore()
 
-  if (!store.token || publicRoutes.includes(String(to.name))) {
+  if (!store.token) {
+    return publicRoutes.includes(String(to.name)) ? true : { name: 'auth' }
+  }
+
+  if (publicRoutes.includes(String(to.name))) {
     return true
   }
 
   if (!store.user) {
     await store.loadMe()
+  }
+
+  const isPendingCreator = store.user?.role === 'creator' && String(store.user.status || '').toLowerCase() !== 'active'
+
+  if (isPendingCreator) {
+    return to.name === 'pending-approval' ? true : { name: 'pending-approval' }
+  }
+
+  if (to.name === 'pending-approval') {
+    return { name: store.user?.role === 'brand' ? 'admin-dashboard' : 'dashboard' }
   }
 
   if (store.user?.role === 'creator' && !store.user.onboarding_completed && to.name !== 'onboarding') {

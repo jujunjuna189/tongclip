@@ -147,8 +147,10 @@ onMounted(() => store.loadDashboard())
         </div>
       </section>
 
-      <div class="fixed bottom-5 right-5 z-20 hidden rounded-full border border-white/10 bg-black/80 px-6 py-3 text-sm font-medium text-white/80 shadow-card backdrop-blur lg:block">
-        Onboarding Progress <span class="ml-3 text-purple-400">0/4 steps</span> <span class="font-normal text-white/35">completed</span>
+      <div class="fixed bottom-20 right-5 z-20 hidden lg:block">
+        <div class="rounded-full border border-white/10 bg-black/80 px-6 py-3 text-sm font-medium text-white/80 shadow-card backdrop-blur">
+          Onboarding Progress <span class="ml-3 text-purple-400">0/4 steps</span> <span class="font-normal text-white/35">completed</span>
+        </div>
       </div>
 
     </div>

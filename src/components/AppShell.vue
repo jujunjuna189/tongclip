@@ -52,7 +52,7 @@ const selectAccount = (id) => {
   showCreatorDropdown.value = false
 }
 
-const isDropdownDisabled = computed(() => {
+const isSocialAccountLogin = computed(() => {
   return Boolean(store.loginSocialAccountId || store.user?.login_social_account_id)
 })
 
@@ -61,7 +61,7 @@ const hasOwnerAccess = computed(() => {
 })
 const showCreatorSwitcher = computed(() => !isAdminArea.value && !isBrand.value)
 const canAddCreator = computed(() => {
-  if (isBrand.value || isDropdownDisabled.value) return false
+  if (isBrand.value || isSocialAccountLogin.value) return false
 
   return hasOwnerAccess.value || !accounts.value.length || store.user?.role === 'creator'
 })
@@ -86,8 +86,8 @@ const notificationPath = (notification) => {
   if (notification.type === 'submission_review') return '/admin/submissions'
   if (notification.type === 'withdrawal_request') return '/admin/payouts'
   if (notification.type === 'support_ticket') return '/admin/tickets'
-  if (notification.type?.startsWith('brand_join')) return '/onboarding'
   if (notification.type === 'brand_join_request') return '/admin/creators'
+  if (notification.type?.startsWith('brand_join')) return '/onboarding'
 
   return isAdminArea.value ? '/admin/dashboard' : '/dashboard'
 }
@@ -287,12 +287,11 @@ onBeforeUnmount(() => {
             <div v-if="showCreatorSwitcher" class="relative hidden md:block" data-popup="creator-account">
             <button 
               type="button" 
-              class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="isDropdownDisabled"
+              class="flex h-10 w-full min-w-[320px] items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065]"
               @click="toggleCreatorDropdown"
             >
               <span>{{ store.selectedAccount ? `${store.selectedAccount.name} - ${store.selectedAccount.handle} ${store.selectedAccount.type === 'user' ? '(User)' : `(${store.selectedAccount.platform || 'Brand'})`}` : 'Pilih Akun' }}</span>
-              <ChevronDownIcon v-if="!isDropdownDisabled" class="h-4 w-4 text-white/58" />
+              <ChevronDownIcon class="h-4 w-4 text-white/58" />
             </button>
             
             <div 
@@ -392,14 +391,13 @@ onBeforeUnmount(() => {
           <div class="relative" data-popup="creator-account">
             <button
               type="button"
-              class="flex h-10 w-full min-w-0 items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065] disabled:cursor-not-allowed disabled:opacity-50"
-              :disabled="isDropdownDisabled"
+              class="flex h-10 w-full min-w-0 items-center justify-between rounded-lg border border-white/10 bg-white/[.045] pl-3.5 pr-3 text-xs font-medium text-white/78 outline-none transition hover:bg-white/[.065]"
               @click="toggleCreatorDropdown"
             >
               <span class="truncate">
                 {{ store.selectedAccount ? `${store.selectedAccount.name} - ${store.selectedAccount.handle} ${store.selectedAccount.type === 'user' ? '(User)' : `(${store.selectedAccount.platform || 'Brand'})`}` : 'Pilih Akun' }}
               </span>
-              <ChevronDownIcon v-if="!isDropdownDisabled" class="ml-2 h-4 w-4 shrink-0 text-white/58" />
+              <ChevronDownIcon class="ml-2 h-4 w-4 shrink-0 text-white/58" />
             </button>
 
             <div

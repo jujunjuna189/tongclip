@@ -13,6 +13,8 @@ export type Account = {
   bank_name?: string
   bank_account_number?: string
   bank_account_name?: string
+  whatsapp_number?: string
+  social_url?: string
   type?: 'user' | 'social_account'
   access_type?: string
 }
@@ -131,6 +133,7 @@ export type User = {
   role?: string
   income?: string
   status?: string
+  rejection_note?: string | null
   onboarding_completed?: boolean
   login_social_account_id?: number | null
   bank_name?: string
@@ -180,6 +183,9 @@ export type AdminCreator = User & {
   submissions_count?: number
   income?: string
   income_value?: number
+  whatsapp_number?: string
+  social_url?: string
+  submitted_social_accounts?: Array<{ id: number; platform: string; handle: string; social_url: string; status: string }>
 }
 
 export type AdminCreatorHistory = {
@@ -280,6 +286,7 @@ export const useClipperStore = defineStore('clipper', {
     user: null as User | null,
     loginSocialAccountId: (Number(localStorage.getItem('clipper_login_social_account_id')) || null) as number | null,
     stats: [] as Array<{ label: string; value: string }>,
+    dashboardRequestId: 0,
     accounts: [] as Account[],
     selectedAccountId: (Number(localStorage.getItem('clipper_account_id')) || null) as number | null,
     campaigns: [] as Campaign[],
@@ -348,9 +355,18 @@ export const useClipperStore = defineStore('clipper', {
         localStorage.removeItem('clipper_login_social_account_id')
       }
 
-      await this.loadDashboard()
+      if (data.user?.role !== 'creator' || String(data.user?.status || '').toLowerCase() === 'active') {
+        await this.loadDashboard()
+      }
     },
-    async register(payload: { name: string; email: string; password: string; handle?: string }) {
+    async register(payload: {
+      name: string
+      email: string
+      password: string
+      handle?: string
+      whatsapp_number: string
+      social_accounts: Array<{ platform: 'tiktok' | 'instagram' | 'youtube' | 'facebook'; handle: string; social_url: string }>
+    }) {
       const handle = payload.handle?.trim().replace(/^@+/, '') || undefined
 
       const { data } = await api.post('/auth/register', {
@@ -358,6 +374,14 @@ export const useClipperStore = defineStore('clipper', {
         email: payload.email.trim(),
         password: payload.password,
         handle,
+        whatsapp_number: payload.whatsapp_number.trim(),
+        social_accounts: payload.social_accounts.map((account) => ({
+          platform: account.platform,
+          handle: `@${account.handle.trim().replace(/^@+/, '')}`,
+          social_url: account.social_url.trim(),
+        })),
+      }, {
+        timeout: 15000,
       })
       this.token = data.token
       this.user = data.user
@@ -424,13 +448,16 @@ export const useClipperStore = defineStore('clipper', {
       return data
     },
     async loadDashboard() {
+      const requestId = ++this.dashboardRequestId
+      const selectedAccountId = this.selectedAccountId
       this.loading = true
       this.error = ''
 
       try {
         const { data } = await api.get('/dashboard', {
-          params: this.selectedAccountId ? { social_account_id: this.selectedAccountId } : {},
+          params: selectedAccountId ? { social_account_id: selectedAccountId } : {},
         })
+        if (requestId !== this.dashboardRequestId || selectedAccountId !== this.selectedAccountId) return
 
         // Enforce user's personal account as default if none is currently selected
         if (!this.selectedAccountId && data.accounts && data.accounts.length > 0) {
@@ -508,10 +535,11 @@ export const useClipperStore = defineStore('clipper', {
           this.setSelectedAccount(myAccount.id, false)
         }
       } catch (error) {
+        if (requestId !== this.dashboardRequestId) return
         this.error = 'Gagal memuat data dashboard.'
         throw error
       } finally {
-        this.loading = false
+        if (requestId === this.dashboardRequestId) this.loading = false
       }
     },
     async loadCampaigns(params: { search?: string; category?: string; type?: string } = {}) {
@@ -585,6 +613,8 @@ export const useClipperStore = defineStore('clipper', {
       bank_name?: string
       bank_account_number?: string
       bank_account_name?: string
+      whatsapp_number?: string
+      social_url?: string
     }) {
       const { data } = await api.post('/social-accounts', payload)
       await this.loadDashboard()
