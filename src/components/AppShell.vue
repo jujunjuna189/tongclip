@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
                   @click="showCreatorDropdown = false"
                 >
                   <PlusIcon class="h-4 w-4" />
-                  Tambah Creator
+                  Tambah Akun
                 </RouterLink>
               </div>
             </div>
@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
                   @click="showCreatorDropdown = false"
                 >
                   <PlusIcon class="h-4 w-4 shrink-0" />
-                  <span class="truncate">Tambah Creator</span>
+                  <span class="truncate">Tambah Akun</span>
                 </RouterLink>
               </div>
             </div>

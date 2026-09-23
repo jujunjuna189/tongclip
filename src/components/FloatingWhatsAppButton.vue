@@ -94,14 +94,14 @@ onBeforeUnmount(() => window.removeEventListener('resize', keepInsideViewport))
     :style="positionStyle"
   >
     <div
-      class="whatsapp-help-popup pointer-events-none absolute bottom-[60px] right-0 whitespace-nowrap rounded-lg border border-white/10 bg-[#15131f] px-4 py-2.5 shadow-card"
+      class="whatsapp-help-popup pointer-events-none absolute bottom-[60px] right-0 whitespace-nowrap rounded-lg border border-purple-200/35 bg-[#5942b8] px-4 py-2.5 shadow-[0_12px_30px_rgba(39,24,93,.48)]"
       aria-hidden="true"
     >
       <p class="text-sm font-medium text-white/85">Apakah ada yang bisa saya bantu?</p>
     </div>
 
     <div
-      class="whatsapp-drag-popup pointer-events-none absolute bottom-[60px] right-0 whitespace-nowrap rounded-lg border border-white/10 bg-[#15131f] px-4 py-2.5 text-sm font-medium text-purple-100 shadow-card"
+      class="whatsapp-drag-popup pointer-events-none absolute bottom-[60px] right-0 whitespace-nowrap rounded-lg border border-purple-200/35 bg-[#5942b8] px-4 py-2.5 text-sm font-medium text-white shadow-[0_12px_30px_rgba(39,24,93,.48)]"
       aria-hidden="true"
     >
       Tombol ini bisa digeser, tekan dan geser

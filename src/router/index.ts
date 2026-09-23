@@ -76,7 +76,7 @@ const router = createRouter({
     { path: '/course-gratis/:id/watch', name: 'course-watch', component: CourseWatchView, meta: { title: 'Putar Course' } },
     { path: '/hubungi-admin', name: 'contact', component: ContactAdminView, meta: { title: 'Hubungi Admin' } },
     { path: '/profile', name: 'profile', component: ProfileView, meta: { title: 'Profile' } },
-    { path: '/social-accounts/create', name: 'social-account-create', component: SocialAccountCreateView, meta: { title: 'Tambah Creator' } },
+    { path: '/social-accounts/create', name: 'social-account-create', component: SocialAccountCreateView, meta: { title: 'Tambah Akun' } },
     { path: '/announcement', name: 'announcements', component: AnnouncementsView, meta: { title: 'FAQ & Peraturan' } },
     { path: '/logout', name: 'logout', component: LogoutView, meta: { title: 'Logout' } },
   ],

@@ -153,7 +153,7 @@ const createAccount = async () => {
           <ArrowLeftIcon class="h-4 w-4" />
         </RouterLink>
         <div>
-          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Tambah Creator</h1>
+          <h1 class="text-[24px] font-semibold leading-tight tracking-[-.025em] md:text-[28px]">Tambah Akun</h1>
           <p class="mt-1 text-sm text-white/42">Tambahkan akun sosial baru ke akun creator kamu.</p>
         </div>
       </div>
@@ -178,7 +178,7 @@ const createAccount = async () => {
       </div>
 
       <section v-if="currentStep === 0" class="mt-5 rounded-lg border border-white/[.08] bg-white/[.025] p-5 md:p-6">
-        <h2 class="text-base font-semibold text-white/86">Profil Creator</h2>
+        <h2 class="text-base font-semibold text-white/86">Profil Akun</h2>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
           <label class="block md:col-span-2">
             <span :class="labelClass">Nama Akun</span>
@@ -279,7 +279,7 @@ const createAccount = async () => {
               :disabled="saving"
             >
               <PlusIcon class="h-4 w-4" />
-              {{ saving ? 'Menyimpan...' : 'Tambah Creator' }}
+              {{ saving ? 'Menyimpan...' : 'Tambah Akun' }}
             </button>
           </div>
         </div>
