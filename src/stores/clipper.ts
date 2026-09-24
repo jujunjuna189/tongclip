@@ -169,6 +169,8 @@ export type AdminSubmission = VideoSubmission & {
   campaign_category?: string | null
   campaign_rate?: string | null
   campaign_rate_value?: number
+  campaign_views_target?: string | null
+  campaign_views_target_value?: number
   campaign_deadline?: string | null
   campaign_type?: string | null
   creator?: string | null

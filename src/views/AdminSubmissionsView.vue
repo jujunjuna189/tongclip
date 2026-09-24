@@ -30,6 +30,22 @@ const statusOptions = [
 ]
 
 const normalizeStatus = (status) => String(status || 'review').toLowerCase().replace(/\s+/g, '_')
+const formatPayout = (value) => {
+  const amount = Number(String(value ?? '').replace(/\D/g, '')) || 0
+  return `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`
+}
+const payoutValue = (value) => Number(String(value ?? '').replace(/\D/g, '')) || 0
+const updatePayoutDraft = (submissionId, event) => {
+  reviewDrafts.value[submissionId].estimated_payout = formatPayout(event.target.value)
+}
+const updateViewsDraft = (submission, event) => {
+  const views = Math.max(0, Number(event.target.value) || 0)
+  const ratePerThousandViews = Number(submission.campaign_rate_value) || 0
+  const payout = Math.floor(views / 1000) * ratePerThousandViews
+
+  reviewDrafts.value[submission.id].views = views
+  reviewDrafts.value[submission.id].estimated_payout = formatPayout(payout)
+}
 
 const isLocked = (submission) => {
   const status = normalizeStatus(submission.status)
@@ -81,7 +97,7 @@ const syncDrafts = () => {
     submission.id,
     {
       views: submission.views_value ?? 0,
-      estimated_payout: submission.estimated_payout_value ?? 0,
+      estimated_payout: formatPayout(submission.estimated_payout_value ?? 0),
     },
   ]))
 }
@@ -94,7 +110,7 @@ const updateSubmissionStatus = async (submission, status) => {
     await store.updateAdminSubmission(submission.id, {
       status,
       views: Number(draft.views || 0),
-      estimated_payout: Number(draft.estimated_payout || 0),
+      estimated_payout: payoutValue(draft.estimated_payout),
     })
   } finally {
     savingId.value = null
@@ -208,7 +224,7 @@ watch(submissions, syncDrafts)
                     </div>
                   </div>
                   <div class="grid shrink-0 gap-1 text-right text-[11px] text-white/42">
-                    <span class="font-semibold text-purple-100/80">{{ submission.campaign_rate || '-' }} / view</span>
+                    <span class="font-semibold text-purple-100/80">{{ submission.campaign_rate || '-' }} / 1K Views</span>
                     <span class="inline-flex items-center justify-end gap-1">
                       <ClockIcon class="h-3.5 w-3.5" />
                       {{ submission.campaign_deadline || 'Tanpa deadline' }}
@@ -232,11 +248,25 @@ watch(submissions, syncDrafts)
               <div v-if="reviewDrafts[submission.id]" class="grid grid-cols-2 gap-2">
                 <label>
                   <span class="text-[11px] font-medium text-white/34">Views</span>
-                  <input v-model.number="reviewDrafts[submission.id].views" min="0" type="number" class="form-control form-number !h-9 !text-sm" :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'" />
+                  <input
+                    :value="reviewDrafts[submission.id].views"
+                    min="0"
+                    type="number"
+                    class="form-control form-number !h-9 !text-sm"
+                    :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'"
+                    @input="updateViewsDraft(submission, $event)"
+                  />
                 </label>
                 <label>
                   <span class="text-[11px] font-medium text-white/34">Payout</span>
-                  <input v-model.number="reviewDrafts[submission.id].estimated_payout" min="0" type="number" class="form-control form-number !h-9 !text-sm" :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'" />
+                  <input
+                    :value="reviewDrafts[submission.id].estimated_payout"
+                    inputmode="numeric"
+                    type="text"
+                    class="form-control !h-9 !text-sm"
+                    :disabled="normalizeStatus(submission.status) === 'approved' || normalizeStatus(submission.status) === 'rejected'"
+                    @input="updatePayoutDraft(submission.id, $event)"
+                  />
                 </label>
               </div>
               <div class="mt-2 flex gap-1.5">

@@ -113,13 +113,13 @@ const login = async () => {
       </div>
     </section>
 
-    <section class="relative hidden min-h-screen overflow-hidden bg-[#030918] lg:block">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,107,255,.34),transparent_38%),linear-gradient(120deg,rgba(223,198,255,.14),rgba(0,0,0,.78))]"></div>
-      <div class="absolute inset-0 opacity-45" style="background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size: 18px 18px;"></div>
-      <div class="absolute left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2">
-        <div class="absolute left-4 top-28 h-28 w-[520px] -skew-x-[42deg] rounded-xl bg-gradient-to-r from-blueglow to-bluebrand shadow-[0_0_90px_rgba(136,107,255,.34)]"></div>
-        <div class="absolute bottom-16 left-72 h-28 w-[420px] skew-x-[42deg] rounded-xl bg-gradient-to-r from-[#2b106c] to-bluebrand opacity-80"></div>
-        <div class="absolute left-[335px] top-[190px] h-32 w-44 rotate-45 rounded-3xl bg-[#030918]"></div>
+    <section class="relative hidden min-h-screen place-items-center overflow-hidden bg-black p-8 lg:grid">
+      <div class="absolute inset-0 bg-[linear-gradient(135deg,#020202_0%,#090713_48%,#241264_100%)]"></div>
+      <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.92)_0%,rgba(0,0,0,.58)_42%,rgba(0,0,0,.28)_100%)]"></div>
+      <div class="absolute inset-0 opacity-35" style="background-image: linear-gradient(rgba(172,147,255,.24) 1px, transparent 1px), linear-gradient(90deg, rgba(172,147,255,.24) 1px, transparent 1px); background-size: 44px 44px;"></div>
+      <div class="relative z-10 w-full max-w-[760px]">
+        <img src="/logo-tongclip-transparent.png" alt="BR Clipper" class="h-auto w-full object-contain brightness-90" />
+        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.78)_0%,rgba(0,0,0,.34)_32%,transparent_68%)]"></div>
       </div>
     </section>
   </main>
